@@ -28,7 +28,13 @@ class Feed:
         self.initial_timestamp = None
         self.cursor_score = ""
 
-    def init(self):
+    def get(self, n: int = 15):
+        if self.note_index:
+            return self._get_subsequent_page(n)
+        else:
+            return self._get_first_page()
+
+    def _get_first_page(self):
         """
         Initialize a "xiaohongshu" thread and get first page of posts.
         :return: pd.DataFrame table of posts' meta.
@@ -59,7 +65,7 @@ class Feed:
         self.note_index = posts.shape[0]
         return posts
 
-    def more(self, n):
+    def _get_subsequent_page(self, n):
         """
         After initialized the information thread, get more posts.
         :param n: The number of more posts to get.
@@ -138,16 +144,16 @@ class Feed:
 
 
 class Search:
-    def __init__(self, cookies: dict, keyword: str):
+    def __init__(self, cookies: dict, query: str):
         self.session = Session()
         self.cookies = cookies
         self.header = header_homefeed.copy()
-        self.keyword = keyword
+        self.query = query
         self.initial_timestamp = round(time.time() * 1000)
         self.has_more = True
         self.page = 1
 
-    def more(self):
+    def get(self):
         empty_df = pd.DataFrame(columns=['id', 'xsec_token', 'title', 'cover_median_url',
                                          'user_id', 'user_name', 'user_xsec_token'])
         if self.has_more is False:
@@ -157,7 +163,7 @@ class Search:
         payload = {
             "ext_flags": [],
             "image_formats": ["jpg", "webp", "avif"],
-            "keyword": self.keyword,
+            "keyword": self.query,
             "note_type": 0,
             "page": self.page,
             "page_size": 20,
@@ -250,6 +256,7 @@ class Detail:
         labels = topic_node.get('content') if topic_node else ''
         labels = [s.strip() for s in labels.split(',')]
         return {
+            "url": url,
             "title": title,
             "description": description,
             "images": images,

@@ -2,7 +2,9 @@
  AI agent for www.xiaohongshu.com thread
 
 ![](https://shields.io/badge/dependencies-Python_3.12-blue)
+![](https://shields.io/badge/dependencies-Azure_OpenAI_Service-blue)
 ![](https://shields.io/badge/OS-Windows_10_64--bit-navy)
+
 
 ## Acknowledgement
 
@@ -32,7 +34,19 @@ If you have [Chromium-based browsers](https://en.wikipedia.org/wiki/Chromium_(we
 >
 > The output table must be saved in CSV format.
 
+Deploy a GPT model that supports [function calling](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/function-calling) in [Azure OpenAI Service](https://learn.microsoft.com/en-us/azure/ai-services/openai/), for example `gpt-4o`.
 
+Create a JSON file `config.json` in the program's root directory. Fill in API key, API version (in format of [date](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes) string `%Y-%m-%d`), endpoint (in format of `https://*.openai.azure.com/`), model type (e.g. `gpt-4o`), and deployment name. The schema is shown as follows.
+
+```json
+{
+  "azure_api_key": "",
+  "azure_api_version": "",
+  "azure_endpoint": "",
+  "azure_model_type": "",
+  "azure_deployment_name": ""
+}
+```
 
 ## Usage
 

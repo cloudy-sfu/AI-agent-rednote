@@ -1,20 +1,13 @@
 import json
 import os
 import time
-from tkinter import Tk
-from tkinter.filedialog import askopenfilename
-
 import pandas as pd
-
-Tk().withdraw()
+from winapi import select_file
 
 
 def dump_cookies(output_path):
-    cookies_path = askopenfilename(
-        title="Select \"xiaohongshu.com\" cookies file",
-        initialdir=r"C:\Users\%USERNAME%\Downloads",
-        filetypes=[("J2TEAMS Cookies File", ".json")],
-    )
+    cookies_path = select_file()
+    assert cookies_path, "Cookies file not chosen."
     with open(cookies_path) as f:
         cookies_dict = json.load(f)
     cookies = pd.DataFrame(cookies_dict['cookies'])
