@@ -1,0 +1,20 @@
+{% if message.role == 'assistant' %}
+    <div message_id="{{ message_id }}">
+        <span class="fw-bold">Agent</span>
+        {% if message.content %}
+            <p style="word-break: break-all">{{ message.content }}</p>
+        {% elif message.tool_calls %}
+            <p class="text-muted">I need further research with tools.</p>
+        {% endif %}
+    </div>
+{% elif message.role == 'user' %}
+    <div class="text-end" message_id="{{ message_id }}">
+        <span class="fw-bold">User</span>
+        <p style="word-break: break-all">{{ message.content }}</p>
+    </div>
+{% elif message.role == 'tool' %}
+    <div message_id="{{ message_id }}">
+        <span class="fw-bold">Agent</span>
+        <p class="text-muted">I've got response from <code>{{ message.name }}</code> tool.</p>
+    </div>
+{% endif %}

@@ -1,4 +1,5 @@
 import json
+import os
 
 import pandas as pd
 import pytest
@@ -7,11 +8,11 @@ import auth
 from get_data import Feed, Search, Detail
 
 # %% Get cookies.
+os.makedirs("raw", exist_ok=True)
 cookies_path = "raw/cookies.csv"
-if auth.check_cookies_expiry(cookies_path) is False:
+if auth.check_cookies(cookies_path) is False:
     auth.dump_cookies(cookies_path)
 cookies = auth.load_cookies(cookies_path)
-
 
 # %% Unit tests.
 def test_feed():

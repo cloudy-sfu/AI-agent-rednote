@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Metadata -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title></title>
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+                integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+                    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+                    crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <!-- Left-side bar style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='left_sidebar.css') }}">
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3 p-3 d-flex flex-column" style="height: 100vh;">
+            <a href="/" class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
+                <span class="fs-5 fw-semibold" id="book-title">AI agent <code>rednote</code></span>
+            </a>
+            <ul class="navbar-nav flex-grow-1" style="overflow-y: auto;" id="articles-list">
+                <li class="nav-item mb-2"
+                        style="line-height: calc(var(--bs-body-line-height));">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem"
+                         fill="none" viewBox="0 0 24 24" class="icon-md">
+                        <path fill="currentColor" d="M20 15a1 1 0 1 0-2 0v2h-2a1 1 0 1 0
+                        0 2h2v2a1 1 0 1 0 2 0v-2h2a1 1 0 1 0 0-2h-2z"></path>
+                        <path fill="currentColor" d="M21.956 8.748C22 9.29 22 9.954 22
+                        10.758V11a1 1 0 0 1-1 1H4v3.2c0 .857 0 1.439.038 1.889.035.438.1.663.18.819a2
+                        2 0 0 0 .874.874c.156.08.38.145.819.18C6.361 19 6.943 19 7.8 19H12a1
+                        1 0 1 1 0 2H7.759c-.805 0-1.47 0-2.01-.044-.563-.046-1.08-.145-1.565-.392a4
+                        4 0 0 1-1.748-1.748c-.247-.485-.346-1.002-.392-1.564C2 16.71 2
+                        16.046 2 15.242V8.758c0-.805 0-1.47.044-2.01.046-.563.145-1.08.392-1.565a4
+                        4 0 0 1 1.748-1.748c.485-.247 1.002-.346 1.564-.392C6.29 3 6.954 3
+                        7.758 3h.851c.146 0 .256 0 .365.006a4 4 0 0 1 2.454
+                        1.016c.081.073.16.151.262.254l.017.017c.127.127.164.164.2.196a2
+                        2 0 0 0 1.227.508c.048.003.1.003.28.003h2.827c.805 0 1.47 0
+                        2.01.044.563.046 1.08.145 1.565.392a4 4 0 0 1 1.748 1.748c.247.485.346
+                        1.002.392 1.564M10.093 5.511a2 2 0 0 0-1.227-.508A6 6 0 0 0
+                        8.586 5H7.8c-.857 0-1.439 0-1.889.038-.438.035-.663.1-.819.18a2 2
+                        0 0 0-.874.874c-.08.156-.145.38-.18.819C4 7.361 4 7.943 4
+                        8.8V10h15.998a15 15 0 0 0-.036-1.089c-.035-.438-.1-.663-.18-.819a2
+                        2 0 0 0-.874-.874c-.156-.08-.38-.145-.819-.18C17.639 7 17.057 7
+                        16.2 7h-2.81c-.145 0-.255 0-.364-.006a4 4 0 0 1-2.454-1.016 7 7
+                        0 0 1-.262-.254l-.017-.017a6 6 0 0 0-.2-.196"></path>
+                    </svg>
+                    <a role="button" class="not-obvious" data-bs-toggle="modal" data-bs-target="#new-chat">
+                        <span class="fw-bold" style="padding-left: 2ch;">New chat</span>
+                    </a>
+                </li>
+
+                {% for conv in conversations | reverse %}
+                    <li class="nav-item mb-2 d-flex justify-content-between"
+                        style="line-height: calc(var(--bs-body-line-height));" conv_id="{{ conv.id }}">
+                        <a href="/conv/{{ conv.id }}" class="not-obvious flex-fill">{{ conv.title }}</a>
+                        <a href="/conv/delete/{{ conv.id }}" class="me-4 not-obvious">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+                            </svg>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <ul class="list-unstyled ps-0 mb-0">
+                <li class="border-top my-3"></li>
+                <li class="text-muted">
+                    <a href="/cookies" class="not-obvious">Replace cookies</a>
+                </li>
+                <li class="text-muted">
+                    Powered by
+                    <a href="https://github.com/cloudy-sfu/HTML-book" target="_blank"
+                       class="not-obvious">HTML Book</a>.
+                </li>
+            </ul>
+        </div>
+        <!-- End of the sidebar -->
+        <div class="col-md-9 p-0 d-flex flex-column" style="height: 100vh;">
+            {% if home_page %}
+                <div class="alert">
+                    <p class="lead fw-bold">Checklist</p>
+                    <p>If you didn't fulfill the checklist, please refer to <code>README.md</code>
+                    and follow the instructions in "Install" section.</p>
+                    <ul>
+                        <li>I have a <code>rednote</code> account.</li>
+                        <li>
+                            I have deployed a GPT model in
+                            <a href="https://learn.microsoft.com/en-us/azure/ai-services/openai/" target="_blank">Azure OpenAI Service</a>,
+                            for example <code>gpt-4o</code>.
+                        </li>
+                        <li>
+                            I have created <code>config.json</code> and recorded API key, API version,
+                            endpoint, model type, and deployment name.
+                        </li>
+                        <li>
+                            I visit this website from a
+                            <a href="https://en.wikipedia.org/wiki/Chromium_(web_browser)#Browsers_based_on_Chromium" target="_blank">Chromium-based browser</a>,
+                            and have installed
+                            <a href="https://chromewebstore.google.com/detail/j2team-cookies/okpidcojinmlaakglciglbpcpajaibco" target="_blank">J2TEAM cookies</a>
+                            extension. If I use other browsers, I have modified <code>auth.dump_cookies</code>
+                            function to process the uploaded cookies file.
+                        </li>
+                    </ul>
+                    <p class="lead fw-bold">Introduction</p>
+                    <p>This is the artificial intelligence agent for social media
+                        <a href="https://www.xiaohongshu.com" target="_blank">rednote</a>.</p>
+                </div>
+            {% else %}
+                <div class="alert flex-fill" style="overflow-y: auto;" id="messages-list">
+                    {{ messages | safe }}
+                </div>
+                <div class="alert mb-0">
+                    <form class="form" action="/conv/send" method="post" id="conv-send">
+                        <label for="user-message">How can I help?</label>
+                        <input type="hidden" name="conv_id" value="{{ conv_id }}">
+                        <div class="d-flex gap-2">
+                            <textarea id="user-message" required name="user_message"
+                                      class="form-control flex-fill" rows="4"></textarea>
+                            <div class="justify-content-center d-flex flex-column">
+                                <button type="submit" class="btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
+                                        <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- New chat modal -->
+<div class="modal fade" id="new-chat" tabindex="-1" aria-labelledby="new-chat-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="new-chat-label">New chat</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form class="form" action="/conv/add" method="post">
+          <div class="modal-body">
+              <label for="max-func-call-rounds">
+                  Maximum function call rounds<code>*</code> <br>
+                  <i>Developer only. The maximum rounds of tool calls between user's
+              message and model's final response.</i>
+              </label>
+              <input type="number" min="1" max="100" required id="max-func-call-rounds"
+                name="max_func_call_rounds" class="form-control" value="15">
+          </div>
+          <div class="modal-footer">
+              <input type="submit" class="btn btn-primary" value="Create">
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='messages.js') }}"></script>
+
+</body>
+</html>

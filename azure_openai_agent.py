@@ -20,6 +20,7 @@ class Conversation:
         self.detail = get_data.Detail(cookies)
         self.cookies = cookies
         self.searching_history = dict()
+        self.busy = False
         self.tools = [
             {
                 "type": "function",
@@ -83,48 +84,65 @@ class Conversation:
             },
         ]
         role_prompt = """You are an AI agent integrated with three functions (get_feed, search, 
-        and get_detail) for interacting with a thread-based social media platform. Use these 
-        functions proactively and appropriately to answer user questions clearly, accurately, 
-        and efficiently.
-        
-        Use get_feed to retrieve recommended posts based on user preferences. Multiple calls 
-        yield additional results.
-        Returns table of recommended posts with columns:
-            id: Post unique identifier
-            xsec_token: Token for accessing detailed content
-            title: Post title
-            cover_median_url: Medium-sized cover image URL
-            user_id: Author's unique identifier (not useful)
-            user_name: Author's nickname (not useful)
-            user_xsec_token: Token for author's homepage (not useful)
-        
-        Use search when a user requests posts about specific topics or keywords. Multiple calls 
-        yield additional results.
-        Returns table of matched posts with columns identical to get_feed.
-        
-        Use get_detail to fetch comprehensive details for selected posts when detailed 
-        information is required for your responses.
-        Returns JSON dictionary containing:
-            url: URL link of the post
-            title: Title of the post
-            description: Textual content of the post
-            images: URLs of images attached to the post
-            labels: Topic labels categorizing the post
-        
-        Carefully decide which functions to invoke based on the user's intent, and provide 
-        objective and concise answers. Your answer should be based on information that exactly 
-        matches the function returns."""
+and get_detail) for interacting with a thread-based social media platform. Use these 
+functions proactively and appropriately to answer user questions clearly, accurately, 
+and efficiently.
+
+Use get_feed to retrieve recommended posts based on user preferences. Multiple calls 
+yield additional results.
+Returns table of recommended posts with columns:
+    id: Post unique identifier
+    xsec_token: Token for accessing detailed content
+    title: Post title
+    cover_median_url: Medium-sized cover image URL
+    user_id: Author's unique identifier (not useful)
+    user_name: Author's nickname (not useful)
+    user_xsec_token: Token for author's homepage (not useful)
+
+Use search when a user requests posts about specific topics or keywords. Multiple calls 
+yield additional results.
+Returns table of matched posts with columns identical to get_feed.
+
+Use get_detail to fetch comprehensive details for selected posts when detailed 
+information is required for your responses.
+Returns JSON dictionary containing:
+    url: URL link of the post
+    title: Title of the post
+    description: Textual content of the post
+    images: URLs of images attached to the post
+    labels: Topic labels categorizing the post
+
+Carefully decide which functions to invoke based on the user's intent, and provide 
+objective and concise answers. Your answer should be based on information that exactly 
+matches the function returns."""
         self.max_func_call_rounds = max_func_call_rounds
         self.messages = [
             {"role": "system", "content": role_prompt},
         ]
+        self.title = None
 
     @staticmethod
     def _format_func_call_log(func_name: str, func_arg_dict: dict):
         func_arg_str = ", ".join(f"{k}=\"{v}\"" for k, v in func_arg_dict.items())
         return f"Function calling: {func_name}({func_arg_str})"
 
-    def user_speaking(self, user_message: str):
+    def generate_title(self, user_message: str):
+        summary_prompt = "Summarize the user's query into a title."
+        messages = [
+            {"role": "system", "content": summary_prompt},
+            {"role": "user", "content": user_message}
+        ]
+        response = client.chat.completions.create(
+            model=config.get('azure_deployment_name'),
+            messages=messages,
+            max_tokens=10,
+            temperature=0,
+            top_p=0.95,
+        )
+        title = response.choices[0].message.content.strip()
+        self.title = title or "New chat"
+
+    def answer_query(self, user_message: str):
         logging.info(f"User's message: {user_message}")
         self.messages.append(
             {"role": "user", "content": user_message},
@@ -178,13 +196,3 @@ class Conversation:
                     })
             else:
                 break
-
-        # Second API call: Get the final response from the model
-        final_response = client.chat.completions.create(
-            model=config.get('azure_deployment_name'),
-            messages=self.messages,
-        )
-        final_response_message = final_response.choices[0].message
-        self.messages.append(final_response_message.__dict__)
-        logging.info(f"Final response: {final_response_message}")
-        return final_response_message.content

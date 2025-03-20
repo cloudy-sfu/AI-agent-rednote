@@ -5,12 +5,9 @@ import pandas as pd
 from winapi import select_file
 
 
-def dump_cookies(output_path):
-    cookies_path = select_file()
-    assert cookies_path, "Cookies file not chosen."
-    with open(cookies_path) as f:
-        cookies_dict = json.load(f)
+def dump_cookies(cookies_dict, output_path):
     cookies = pd.DataFrame(cookies_dict['cookies'])
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     cookies.to_csv(output_path, index=False)
 
 
@@ -20,10 +17,11 @@ def load_cookies(cookies_path):
     return cookies
 
 
-def check_cookies_expiry(cookies_path):
+def check_cookies(cookies_path):
     if not os.path.isfile(cookies_path):
         return False
     cookies = pd.read_csv(cookies_path)
-    if time.time() > cookies['expirationDate'].min():  # np.False_ is not False
+    expiry_datetime = cookies['expirationDate'].min() + 86400
+    if time.time() > expiry_datetime:  # np.False_ is not False
         return False
     return True

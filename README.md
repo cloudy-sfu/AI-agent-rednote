@@ -3,7 +3,6 @@
 
 ![](https://shields.io/badge/dependencies-Python_3.12-blue)
 ![](https://shields.io/badge/dependencies-Azure_OpenAI_Service-blue)
-![](https://shields.io/badge/OS-Windows_10_64--bit-navy)
 
 
 ## Acknowledgement
