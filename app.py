@@ -7,6 +7,7 @@ import threading
 import webbrowser
 from logging.handlers import RotatingFileHandler
 
+from bs4 import BeautifulSoup
 from flask import Flask, render_template, redirect, request, jsonify
 from markdown import markdown
 
@@ -32,6 +33,7 @@ cookies = {}
 cookies_lock = threading.Lock()
 conversations = {}  # id: instance
 conversations_lock = threading.Lock()
+
 
 @app.route('/')
 def main():  # put application's code here
@@ -128,6 +130,28 @@ def delete_conversation(conv_id: int):
     return redirect('/')
 
 
+def parse_content_filter_error(prefix: str, error: dict):
+    errors = []
+    error_type = error.get('innererror', {}).get('code')
+    match error_type:
+        case 'ResponsibleAIPolicyViolation':
+            for filter_name, filter_result in (
+                    error.get('innererror', {}).get('content_filter_result', {}).items()):
+                if not filter_result.get('filtered'):
+                    continue
+                severity = filter_result.get('severity')
+                if severity:
+                    errors.append(f"{prefix}, the user's message is ignored because of "
+                                  f"{severity} severity of {filter_name} content.")
+                else:
+                    errors.append(f"{prefix}, the user's message is ignored because of "
+                                  f"{filter_name} content.")
+        case _:
+            errors.append(f"{prefix}, {error_type} error happens. Read the terminal "
+                          f"log for details.")
+    return errors
+
+
 @app.route('/conv/send', methods=["POST"])  # AJAX, No-response
 def process_user_message():
     conv_id = request.form.get('conv_id', type=int)
@@ -138,11 +162,21 @@ def process_user_message():
     if not isinstance(conv, Conversation):
         return jsonify()
     conv.busy = True
+    error_message = []
     if not conv.title:
-        conv.generate_title(user_message)
-    conv.answer_query(user_message)
+        error_1 = conv.generate_title(user_message)
+        if error_1:
+            error_message.append(parse_content_filter_error(
+                "When generating the conversation title", error_1
+            ))
+    error_2 = conv.answer_query(user_message)
+    if error_2:
+        error_message.append(parse_content_filter_error(
+            "When answering the user's query", error_2
+        ))
     conv.busy = False
-    return jsonify()
+    print(error_message)
+    return jsonify({"error": error_message})
 
 
 @app.route('/conv/update', methods=["POST"])  # AJAX, JSON-response
@@ -169,7 +203,32 @@ def render_markdown(text):
             'auto_title': 'on',
         },
     }
-    return markdown(text, extensions=extensions, extension_configs=extension_configs)
+    tree_text = markdown(text, extensions=extensions, extension_configs=extension_configs)
+    tree = BeautifulSoup(tree_text, 'html.parser')
+    for img_tag in tree.find_all('img'):
+        src = img_tag.get('src')
+        alt = img_tag.get('alt', '')
+        a_tag = tree.new_tag('a', href=src, target="_blank",
+                             referrerpolicy="no-referrer", rel="noopener noreferrer")
+        a_tag.string = alt
+        img_tag.replace_with(a_tag)
+    return str(tree)
+
+
+@app.template_filter('render_tool_call_token')
+def render_tool_call_token(tool_call):
+    function_name = tool_call.function.name
+    function_args = json.loads(tool_call.function.arguments)
+    call_id = tool_call.id.removeprefix('call')
+    func_arg_str = ", ".join(f"{k}=\"{v}\"" for k, v in function_args.items())
+    return f"{function_name}{call_id}({func_arg_str})"
+
+
+@app.template_filter('render_tool_response_token')
+def render_tool_response_token(message):
+    call_id = message.get('tool_call_id', '').removeprefix('call')
+    function_name = message.get('name', '')
+    return f"{function_name}{call_id}"
 
 
 def find_available_port(start_port: int, tries: int = 100):

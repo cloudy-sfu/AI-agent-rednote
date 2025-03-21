@@ -47,9 +47,3 @@ main {
     text-decoration: none;
     color: var(--bs-dark);
 }
-#articles-list {
-    font-size: calc(var(--bs-body-font-size) * 0.875);  /*Default 1rem=16px, bookdown use 14px.*/
-    font-family: 'Arial', sans-serif;
-    line-height: calc(var(--bs-body-line-height) * 1.35);
-    /*font-family: var(--bs-font-sans-serif);*/
-}

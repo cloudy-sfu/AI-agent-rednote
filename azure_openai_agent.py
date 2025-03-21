@@ -1,7 +1,7 @@
 import json
 import logging
 
-from openai import AzureOpenAI
+from openai import AzureOpenAI, BadRequestError
 
 import get_data
 
@@ -132,17 +132,22 @@ matches the function returns."""
             {"role": "system", "content": summary_prompt},
             {"role": "user", "content": user_message}
         ]
-        response = client.chat.completions.create(
-            model=config.get('azure_deployment_name'),
-            messages=messages,
-            max_tokens=10,
-            temperature=0,
-            top_p=0.95,
-        )
-        for i, choice in enumerate(response.choices):
+        try:
+            response = client.chat.completions.create(
+                model=config.get('azure_deployment_name'),
+                messages=messages,
+                max_tokens=15,
+                temperature=0,
+                top_p=0.95,
+            )
+        except BadRequestError as e:
+            logging.error(f"When summarizing the title, user message \"{user_message}\" "
+                          f"is filtered. {e.body}")
+            return e.body
+        for choice in response.choices:
             title = choice.message.content
             if title is None:
-                self.title = "Cannot generate"
+                self.title = user_message[:20] + "..."
                 for filter_name, filter_result in choice.content_filter_results.items():
                     if filter_result.get('filtered'):
                         logging.warning(
@@ -161,13 +166,19 @@ matches the function returns."""
         )
         n_func_call_rounds = 0
         while n_func_call_rounds < self.max_func_call_rounds:
-            # First API call: Ask the model to use the functions
-            response = client.chat.completions.create(
-                model=config.get('azure_deployment_name'),
-                messages=self.messages,
-                tools=self.tools,
-                tool_choice="auto",
-            )
+            # API call: Ask the model to use the functions
+            try:
+                response = client.chat.completions.create(
+                    model=config.get('azure_deployment_name'),
+                    messages=self.messages,
+                    tools=self.tools,
+                    tool_choice="auto",
+                )
+            except BadRequestError as e:
+                logging.error(
+                    f"When summarizing the title, user message \"{user_message}\" "
+                    f"is filtered. {e.body}")
+                return e.body
             # Process the model's response
             response_message = response.choices[0].message
             self.messages.append(response_message.__dict__)

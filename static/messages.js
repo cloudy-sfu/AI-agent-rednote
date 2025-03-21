@@ -55,9 +55,14 @@ $('#conv-send').submit(function(event) {
         type: 'POST',
         url: action_target,
         data: form.serialize(), // Serialize the form data
-        success: function() {
+        success: function(response) {
             user_message_box.readOnly = false;
             user_message_box.value = '';
+            if (response['error']) {
+                for (let error_message of response['error']) {
+                    update_messages_displayed(`<p class="text-danger">${error_message}</p>`)
+                }
+            }
         },
         error: function() {
             user_message_box.readOnly = false;

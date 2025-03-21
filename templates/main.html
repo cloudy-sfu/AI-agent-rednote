@@ -54,8 +54,7 @@
                 </li>
 
                 {% for conv in conversations | reverse %}
-                    <li class="nav-item mb-2 d-flex justify-content-between"
-                        style="line-height: calc(var(--bs-body-line-height));" conv_id="{{ conv.id }}">
+                    <li class="nav-link d-flex justify-content-between" conv_id="{{ conv.id }}">
                         <a href="/conv/{{ conv.id }}" class="not-obvious flex-fill">{{ conv.title }}</a>
                         <a href="/conv/delete/{{ conv.id }}" class="me-4 not-obvious">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">

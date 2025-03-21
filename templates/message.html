@@ -4,7 +4,13 @@
         {% if message.content %}
             {{ message.content | render_markdown | safe }}
         {% elif message.tool_calls %}
-            <p class="text-muted">I need further research with tools.</p>
+            <p style="word-break: break-all">
+                {% for tool_call in message.tool_calls %}
+                    <span class="text-muted">Call Python function
+                        <code>{{ tool_call | render_tool_call_token }}</code>
+                    </span><br>
+                {% endfor %}
+            </p>
         {% endif %}
     </div>
 {% elif message.role == 'user' %}
@@ -15,6 +21,8 @@
 {% elif message.role == 'tool' %}
     <div message_id="{{ message_id }}">
         <span class="fw-bold">Agent</span>
-        <p class="text-muted">I've got response from <code>{{ message.name }}</code> tool.</p>
+        <p class="text-muted" style="word-break: break-all">
+            Function <code>{{ message | render_tool_response_token }}</code> has responded.
+        </p>
     </div>
 {% endif %}
