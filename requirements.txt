@@ -16,6 +16,8 @@ iniconfig==2.1.0
 itsdangerous==2.2.0
 Jinja2==3.1.6
 jiter==0.9.0
+Markdown==3.7
+markdown-link-attr-modifier==0.2.1
 MarkupSafe==3.0.2
 numpy==2.2.4
 openai==1.67.0

@@ -8,6 +8,7 @@ import webbrowser
 from logging.handlers import RotatingFileHandler
 
 from flask import Flask, render_template, redirect, request, jsonify
+from markdown import markdown
 
 import auth
 from azure_openai_agent import Conversation
@@ -157,6 +158,19 @@ def update_message():
     messages_html = render_message_list(conv.messages[start_id:], start_id=start_id)
     response = {"messages": messages_html, "busy": conv.busy}
     return jsonify(response)
+
+
+@app.template_filter('render_markdown')
+def render_markdown(text):
+    extensions = ['markdown_link_attr_modifier', ]
+    extension_configs = {
+        'markdown_link_attr_modifier': {
+            'new_tab': 'external_only',
+            'no_referrer': 'external_only',
+            'auto_title': 'on',
+        },
+    }
+    return markdown(text, extensions=extensions, extension_configs=extension_configs)
 
 
 def find_available_port(start_port: int, tries: int = 100):
