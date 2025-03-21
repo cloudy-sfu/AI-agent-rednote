@@ -132,11 +132,12 @@ def delete_conversation(conv_id: int):
 
 def parse_content_filter_error(prefix: str, error: dict):
     errors = []
-    error_type = error.get('innererror', {}).get('code')
+    if 'innererror' in error.keys():
+        error = error.get('innererror', {})
+    error_type = error.get('code')
     match error_type:
         case 'ResponsibleAIPolicyViolation':
-            for filter_name, filter_result in (
-                    error.get('innererror', {}).get('content_filter_result', {}).items()):
+            for filter_name, filter_result in (error.get('content_filter_result', {}).items()):
                 if not filter_result.get('filtered'):
                     continue
                 severity = filter_result.get('severity')
@@ -147,8 +148,8 @@ def parse_content_filter_error(prefix: str, error: dict):
                     errors.append(f"{prefix}, the user's message is ignored because of "
                                   f"{filter_name} content.")
         case _:
-            errors.append(f"{prefix}, {error_type} error happens. Read the terminal "
-                          f"log for details.")
+            errors.append(f"{prefix}, error type \"{error_type}\" happens. "
+                          f"{error.get('message')} Read the terminal log for details.")
     return errors
 
 
@@ -175,7 +176,6 @@ def process_user_message():
             "When answering the user's query", error_2
         ))
     conv.busy = False
-    print(error_message)
     return jsonify({"error": error_message})
 
 

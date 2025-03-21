@@ -7,7 +7,7 @@ const user_message_box = document.getElementById('user-message');
 //     conv_item.firstElementChild.text = new_title;
 // }
 
-function update_messages_displayed(messages_html) {
+function append_message_list(messages_html) {
     msg_list.innerHTML += messages_html;
 }
 
@@ -31,16 +31,16 @@ function update_messages(conv_id) {
         data: {conv_id: conv_id, start_id: get_start_id()},
         success: function(response) {
             if (response['error']) {
-                update_messages_displayed(`<p class="text-danger">${response['error']}</p>`);
+                append_message_list(`<p class="text-danger">${response['error']}</p>`);
             } else if (response['messages']) {
-                update_messages_displayed(response['messages']);
+                append_message_list(response['messages']);
             }
             if (response['busy']) {
                 setTimeout(update_messages, 1000, conv_id);
             }
         },
         error: function(response) {
-            update_messages_displayed(`<p class="text-danger">${response}</p>`)
+            append_message_list(`<p class="text-danger">${response}</p>`)
         }
     });
 }
@@ -60,13 +60,13 @@ $('#conv-send').submit(function(event) {
             user_message_box.value = '';
             if (response['error']) {
                 for (let error_message of response['error']) {
-                    update_messages_displayed(`<p class="text-danger">${error_message}</p>`)
+                    append_message_list(`<p class="text-danger">${error_message}</p>`)
                 }
             }
         },
         error: function() {
             user_message_box.readOnly = false;
-            update_messages_displayed(`<p class="text-danger">Fail to get response from the AI agent, please try again.</p>`);
+            append_message_list(`<p class="text-danger">Fail to get response from the AI agent, please try again.</p>`);
         }
     });
     update_messages(form[0].conv_id.value);

@@ -142,7 +142,7 @@ matches the function returns."""
             )
         except BadRequestError as e:
             logging.error(f"When summarizing the title, user message \"{user_message}\" "
-                          f"is filtered. {e.body}")
+                          f"is ignored. {e.body}")
             return e.body
         for choice in response.choices:
             title = choice.message.content
@@ -176,8 +176,8 @@ matches the function returns."""
                 )
             except BadRequestError as e:
                 logging.error(
-                    f"When summarizing the title, user message \"{user_message}\" "
-                    f"is filtered. {e.body}")
+                    f"When answering the user's query, user message \"{user_message}\" "
+                    f"is ignored. {e.body}")
                 return e.body
             # Process the model's response
             response_message = response.choices[0].message

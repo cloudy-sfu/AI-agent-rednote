@@ -65,3 +65,12 @@ When the program hints that `rednote` cookies are expired:
 
 *You can replace cookies (therefore can switch between `rednote` accounts) by click "replace cookies" at left-bottom corner of main page. Existed conversations will not be affected by replacing cookies. Therefore, the conversations, which is created long time ago, cannot continue visiting data fetching tools.*
 
+If AI agent is too radical to filter the user's message, adjust thresholds to "high" in [content filtering](https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/content-filtering).
+
+Tested API:
+
+| Model type | API version |
+| ---------- | ----------- |
+| gpt-4o     | 2024-02-01  |
+
+*Other models & API versions may be compatible to this application, but not guaranteed.*
