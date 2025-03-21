@@ -28,7 +28,6 @@ werkzeug_logger = logging.getLogger('werkzeug')
 werkzeug_logger.propagate = False
 cookies_path = "raw/cookies.csv"
 os.makedirs(os.path.dirname(cookies_path), exist_ok=True)
-# cookies = auth.load_cookies(cookies_path)
 cookies = {}
 cookies_lock = threading.Lock()
 conversations = {}  # id: instance

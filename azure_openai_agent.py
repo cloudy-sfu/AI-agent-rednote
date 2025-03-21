@@ -139,8 +139,20 @@ matches the function returns."""
             temperature=0,
             top_p=0.95,
         )
-        title = response.choices[0].message.content.strip()
-        self.title = title or "New chat"
+        for i, choice in enumerate(response.choices):
+            title = choice.message.content
+            if title is None:
+                self.title = "Cannot generate"
+                for filter_name, filter_result in choice.content_filter_results.items():
+                    if filter_result.get('filtered'):
+                        logging.warning(
+                            f"When summarizing the title, "
+                            f"user message \"{user_message}\" is recognized to involve "
+                            f"{filter_name}, {filter_result.get('severity')} severity."
+                        )
+            else:
+                self.title = title.strip()
+                break
 
     def answer_query(self, user_message: str):
         logging.info(f"User's message: {user_message}")
