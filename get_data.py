@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import time
 
 import pandas as pd
@@ -248,17 +249,27 @@ class Detail:
             image.get('content')
             for image in tree.find_all('meta', {'name': 'og:image'})
         ]
-        description_node = tree.find('meta', {'name': 'description'})
-        description = description_node.get('content') if description_node else ''
-        title_node = tree.find('div', {'id': 'detail-title'})
-        title = title_node.text if title_node else ''
-        topic_node = tree.find('meta', {'name': 'keywords'})
-        labels = topic_node.get('content') if topic_node else ''
-        labels = [s.strip() for s in labels.split(',')]
+
+        initial_state_regex = re.compile("window.__INITIAL_STATE__")
+        script_tag = tree.find("script", string=initial_state_regex)
+        script_text = script_tag.text
+        script_text = re.sub("window.__INITIAL_STATE__=", "", script_text)
+        script_text = re.sub("undefined", "null", script_text)
+        initial_state = json.loads(script_text)
+
+        note = initial_state['note']['noteDetailMap'][id_]['note']
+        published_time_stamp = note.get('time')
+        if published_time_stamp:
+            published_time = pd.Timestamp(published_time_stamp, unit='ms', tz='Asia/Shanghai')
+            published_time = published_time.strftime("%Y-%m-%d %H:%M:%S %z")
+        else:
+            published_time = ''
         return {
             "url": url,
-            "title": title,
-            "description": description,
+            "title": note.get('title', ''),
+            "description": note.get('desc', ''),
             "images": images,
-            "labels": labels,
+            "labels": [a.get('name', '') for a in note.get('tagList')],
+            "location": note.get('ipLocation', ''),
+            "published_time": published_time
         }

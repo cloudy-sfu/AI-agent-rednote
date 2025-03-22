@@ -111,6 +111,8 @@ Returns JSON dictionary containing:
     description: Textual content of the post
     images: URLs of images attached to the post
     labels: Topic labels categorizing the post
+    published_time: The time when the post is published
+    location: The location of the author when publishing the post
 
 Carefully decide which functions to invoke based on the user's intent, and provide 
 objective and concise answers. Your answer should be based on information that exactly 
@@ -194,21 +196,30 @@ matches the function returns."""
 
                     match function_name:
                         case "get_feed":
-                            posts = self.feed.get().to_json(orient='records')
-                            function_response = json.dumps(posts)
+                            try:
+                                posts = self.feed.get().to_json(orient='records')
+                                function_response = json.dumps(posts)
+                            except Exception as e:
+                                function_response = json.dumps({"error": str(e)})
                         case "search":
                             query = function_args.get("query")
                             search_sess = self.searching_history.get(query)
                             if search_sess is None:
                                 search_sess = get_data.Search(self.cookies, query)
                                 self.searching_history[query] = search_sess
-                            posts = search_sess.get().to_json(orient='records')
-                            function_response = json.dumps(posts)
+                            try:
+                                posts = search_sess.get().to_json(orient='records')
+                                function_response = json.dumps(posts)
+                            except Exception as e:
+                                function_response = json.dumps({"error": str(e)})
                         case "get_detail":
                             id_ = function_args.get("id_")
                             xsec_token = function_args.get("xsec_token")
-                            detail_json = self.detail.get(id_, xsec_token)
-                            function_response = json.dumps(detail_json)
+                            try:
+                                detail_json = self.detail.get(id_, xsec_token)
+                                function_response = json.dumps(detail_json)
+                            except Exception as e:
+                                function_response = json.dumps({"error": str(e)})
                         case _:
                             function_response = json.dumps({"error": "Unknown function."})
                     self.messages.append({
