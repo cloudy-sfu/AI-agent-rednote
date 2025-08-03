@@ -1,11 +1,4 @@
-// const conv_list = document.getElementById('articles-list');
 const msg_list = document.getElementById('messages-list');
-const user_message_box = document.getElementById('user-message');
-
-// function change_title(conv_id, new_title) {
-//     const conv_item = conv_list.querySelector(`li[conv_id="${conv_id}"]`);
-//     conv_item.firstElementChild.text = new_title;
-// }
 
 function append_message_list(messages_html) {
     msg_list.innerHTML += messages_html;
@@ -40,24 +33,58 @@ function update_messages(conv_id) {
             }
         },
         error: function(response) {
-            append_message_list(`<p class="text-danger">${response}</p>`)
+            append_message_list(`<p class="text-danger">Cannot update messages. HTTP status ${response.status}</p>`)
         }
     });
 }
 
+async function add_conversation() {
+    try {
+        const response = await fetch("/conv/add");
+        if (!response.ok) {
+            append_message_list(`<p class="text-danger">Cannot create new conversation. HTTP status ${response.status}</p>`);
+            return
+        } else if (response.redirected) {
+            location.href = response.url;  // Redirected to cookies page.
+            return
+        }
+        return await response.json();
+    } catch (error) {
+        append_message_list(`<p class="text-danger">Cannot create new conversation. ${error}</p>`);
+    }
+}
 
-$('#conv-send').submit(function(event) {
+async function add_conversation_ui() {
+    const response_json = await add_conversation();
+    const conv_id = parseInt(response_json['conv_id']);
+    if (isNaN(conv_id)) {
+        append_message_list(`<p class="text-danger">Cannot to create new conversation. <code>conv_id=${conv_id}</code></p>`)
+        return
+    }
+    location.href = `/conv/${conv_id}`;
+}
+
+$('#conv-send').submit(async function(event) {
     event.preventDefault();
-    user_message_box.readOnly = true;
+    user_message.readOnly = true;
     const form = $(this);
     const action_target = form.attr('action'); // Get the form's action URL
+    if (!form[0].conv_id.value) {
+        const response_json = await add_conversation();
+        const conv_id = parseInt(response_json['conv_id']);
+        if (isNaN(conv_id)) {
+            return
+        }
+        form[0].conv_id.value = conv_id;
+    }
+
     $.ajax({
         type: 'POST',
         url: action_target,
         data: form.serialize(), // Serialize the form data
         success: function(response) {
-            user_message_box.readOnly = false;
-            user_message_box.value = '';
+            user_message.readOnly = false;
+            user_message.value = '';
             if (response['error']) {
                 for (let error_message of response['error']) {
                     append_message_list(`<p class="text-danger">${error_message}</p>`)
@@ -65,7 +92,7 @@ $('#conv-send').submit(function(event) {
             }
         },
         error: function() {
-            user_message_box.readOnly = false;
+            user_message.readOnly = false;
             append_message_list(`<p class="text-danger">Fail to get response from the AI agent, please try again.</p>`);
         }
     });

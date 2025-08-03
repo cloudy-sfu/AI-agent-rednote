@@ -20,6 +20,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
           rel="stylesheet">
     <title>AI Agent Messages</title>
+    <!-- jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
 </head>
 <body style="height: 100vh;">
     <div class="navbar navbar-expand-md" id="header">
@@ -33,6 +35,7 @@
             <div class="collapse navbar-collapse" id="navbarCollapse">
                 <ul class="navbar-nav me-auto mb-2 mb-md-0">
                     <li class="nav-item"><a class="nav-link" href="/settings">Settings</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/cookies">Cookies</a></li>
                 </ul>
             </div>
         </div>
@@ -42,11 +45,18 @@
             <div class="col-md-4 d-none d-md-block" style="overflow-y: auto;" id="main-left">
                 <div class="list-group list-group-flush border-bottom scrollarea">
                 <div class="list-group-item py-3 d-block d-md-none">
-                    <a href="" style="text-decoration: none; color: black"
+                    <a style="text-decoration: none; color: black"
                        onclick="toggle_conv_list()" type="button"
                        class="d-flex gap-2 fw-bold">
                         <i class="bi bi-list-task"></i>
                         <span>Collapse conversation list</span>
+                    </a>
+                </div>
+                <div class="list-group-item py-3">
+                    <a style="text-decoration: none; color: black" type="button"
+                       class="d-flex gap-2 fw-bold" onclick="add_conversation_ui()">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>New conversation</span>
                     </a>
                 </div>
                 {% for conv in conversations | reverse %}
@@ -104,7 +114,7 @@
 </body>
 
 <script>
-    // set #main.height = 100vh - #header.height
+    // set #main.height = 100vh - #header.height - #footer.height
     const header_height = document.getElementById("header").offsetHeight;
     const footer_height = document.getElementById("footer").offsetHeight;
     const main_height = window.innerHeight - header_height - footer_height;
@@ -143,7 +153,7 @@
     user_message.addEventListener('keyup', (e) => {
         if (e.ctrlKey && e.key === 'Enter') {
             e.preventDefault();
-            document.getElementById('conv-send').submit();
+            $('#conv-send').submit();
         }
     });
     {% endif %}
@@ -158,5 +168,6 @@
     }
 
 </script>
+<script src="{{ url_for('static', filename='messages.js') }}"></script>
 
 </html>

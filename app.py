@@ -90,7 +90,7 @@ def update_cookies():
     return redirect("/")
 
 
-@app.route('/conv/add', methods=['POST'])
+@app.route('/conv/add', methods=['GET'])
 def add_conversation():
     global cookies
     if auth.check_cookies(cookies_path):
@@ -98,20 +98,14 @@ def add_conversation():
             cookies = auth.load_cookies(cookies_path)
     else:
         return redirect('/cookies')
-    max_func_call_rounds = request.form.get('max_func_call_rounds', type=int)
-    if not max_func_call_rounds:
-        return render_template(
-            'new_chat_error.html',
-            failed_reason="Maximum function call rounds is required."
-        )
-    conv = Conversation(cookies, max_func_call_rounds)
+    conv = Conversation(cookies)
     with conversations_lock:
         if conversations:
             conv_id = max(conversations.keys()) + 1
         else:
             conv_id = 1
         conversations[conv_id] = conv
-    return redirect(f'/conv/{conv_id}')
+    return jsonify({"conv_id": conv_id})
 
 
 def render_message_list(messages, start_id: int = 0):
@@ -179,20 +173,14 @@ def parse_content_filter_error(prefix: str, error: dict):
 def process_user_message():
     conv_id = request.form.get('conv_id', type=int)
     user_message = request.form.get('user_message', type=str)
+    error_message = []
     if conv_id is None:
-        conv = Conversation(cookies, max_func_call_rounds)
-        with conversations_lock:
-            if conversations:
-                conv_id = max(conversations.keys()) + 1
-            else:
-                conv_id = 1
-            conversations[conv_id] = conv
+        return jsonify()
     else:
         conv = conversations.get(conv_id)
     if not isinstance(conv, Conversation):
         return jsonify()
     conv.busy = True
-    error_message = []
     if not conv.title:
         error_1 = conv.generate_title(user_message)
         if error_1:
