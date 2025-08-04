@@ -3,6 +3,7 @@ import logging
 import re
 
 from bs4 import BeautifulSoup
+import demjson3
 
 
 def extract_initial_state(html_content: str, replacements: dict) -> dict | None:
@@ -32,29 +33,8 @@ def extract_initial_state(html_content: str, replacements: dict) -> dict | None:
                 initial_state_str = match.group(1)
                 break
 
-    # 栈空间保证先入后出 可以确保提取所有的大括号
-    # 具体原理查看 https://leetcode.cn/problems/valid-parentheses/description/
     if initial_state_str:
-        stack = []
-        result = []
-
-        for char in initial_state_str:
-            if char == '{':
-                stack.append('{')
-            elif char == '}':
-                stack.pop()
-
-            result.append(char)
-
-            if not stack:
-                break
-
-        extracted_content = ''.join(result)
-
-        for old, new in replacements.items():
-            extracted_content = extracted_content.replace(old, new)
-
-        return json.loads(extracted_content)
+        return demjson3.decode(initial_state_str, encoding="utf-8")
     else:
         # 如果未找到, 说明请求出问题 可能账户被特征了
         logging.error("window.__INITIAL_STATE__ not found.")

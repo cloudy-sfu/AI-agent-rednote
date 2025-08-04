@@ -34,8 +34,10 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarCollapse">
                 <ul class="navbar-nav me-auto mb-2 mb-md-0">
-                    <li class="nav-item"><a class="nav-link" href="/settings">Settings</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/config">Settings</a></li>
                     <li class="nav-item"><a class="nav-link" href="/cookies">Cookies</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/archive">Archive</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
                 </ul>
             </div>
         </div>
@@ -82,7 +84,6 @@
                     </div>
                 </div>
                 <div id="main-right-input">
-                    {% if active %}
                     <form class="form" action="/conv/send" method="post" id="conv-send">
                         <input type="hidden" name="conv_id" value="{{ conv_id }}">
                         <div class="input-group">
@@ -90,6 +91,11 @@
                                     style="align-self: flex-end"
                                     onclick="toggle_conv_list()" type="button">
                                 <i class="bi bi-list-task"></i>
+                            </button>
+                            <button class="btn btn-dark rounded"
+                                    style="align-self: flex-end"
+                                    onclick="print_message_list()" type="button">
+                                <i class="bi bi-printer"></i>
                             </button>
                             <textarea id="user-message" required name="user_message"
                                       class="form-control rounded"
@@ -101,7 +107,6 @@
                             </button>
                         </div>
                     </form>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -127,7 +132,6 @@
     const main_right = document.getElementById("main-right");
     main_right.style.height = `${main_right_height}px`;
 
-    {% if active %}
     // Auto-resize text input area's height
     const user_message = document.getElementById("user-message");
     const resize_main_right = () => {
@@ -156,15 +160,40 @@
             $('#conv-send').submit();
         }
     });
-    {% endif %}
 
     // Collapse & expand chat list
-    const toggle_conv_list = function () {
+    function toggle_conv_list() {
         if (conv_list.classList.contains("d-none")) {
             conv_list.classList.remove("d-none");
         } else {
             conv_list.classList.add("d-none");
         }
+    }
+
+    function print_message_list() {
+        const messages_list = document.getElementById('messages-list');
+        const cloned_messages_list = messages_list.cloneNode(true);
+        const print_preview = window.open('about:blank', '_blank');
+        const stylesheets = Array.from(document.styleSheets);
+        stylesheets.forEach(stylesheet => {
+            if (stylesheet.href) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = stylesheet.href;
+                print_preview.document.head.appendChild(link);
+            } else if (stylesheet.cssRules) {
+                const style = document.createElement('style');
+                style.textContent = Array.from(stylesheet.cssRules)
+                    .map(rule => rule.cssText)
+                    .join('\n');
+                print_preview.document.head.appendChild(style);
+            }
+        });
+        const title = print_preview.document.createElement('title');
+        title.textContent = "Messages history print preview";
+        print_preview.document.head.appendChild(title);
+        print_preview.document.body.appendChild(cloned_messages_list);
+        print_preview.document.close();
     }
 
 </script>

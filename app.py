@@ -14,7 +14,8 @@ from flask import Flask, render_template, redirect, request, jsonify
 from markdown import markdown
 
 import auth
-from azure_openai_agent import Conversation
+from openai_agent import Conversation, get_model_list
+from config import config
 
 logging.basicConfig(
     format="%(levelname)s | %(asctime)s | %(message)s",
@@ -204,9 +205,9 @@ def update_message():
         return jsonify({"error": "Conversation doesn't exist.", "busy": False})
     conv = conversations.get(conv_id)
     if not isinstance(conv, Conversation):
-        return jsonify({"error": "Conversation doesn't exist.", "busy": False})
+        return jsonify({"error": "Conversation is archived.", "busy": False})
     messages_html = render_message_list(conv.messages[start_id:], start_id=start_id)
-    response = {"messages": messages_html, "busy": conv.busy}
+    response = {"messages": messages_html, "title": conv.title, "busy": conv.busy}
     return jsonify(response)
 
 
@@ -269,14 +270,40 @@ def find_available_port(start_port: int, tries: int = 100):
 
 
 @app.route('/archive')
-def archive_all():
+def view_archive():
+    return render_template("archive.html")
+
+
+@app.route('/archive/update')
+def archive():
     archived_convs = []
     with conversations_lock:
         for conv in conversations.values():
             archived_conv = ArchivedConversation(title=conv.title, messages=conv.messages)
             archived_convs.append(archived_conv)
     pd.to_pickle(archived_convs, "raw/conversations")
-    return redirect("/")
+    return redirect('/')
+
+
+@app.route('/about')
+def view_check_list():
+    return render_template("checklist.html")
+
+@app.route('/config')
+def view_config():
+    return render_template(
+        "config.html",
+        config=config,
+        openai_model_list=get_model_list(),
+    )
+
+
+@app.route('/config/update', methods=['POST'])
+def update_config():
+    config_received = request.form.to_dict()
+    config.update(config_received)
+    config.save()
+    return redirect('/')
 
 
 if __name__ == '__main__':

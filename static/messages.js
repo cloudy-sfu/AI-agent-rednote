@@ -2,6 +2,7 @@ const msg_list = document.getElementById('messages-list');
 
 function append_message_list(messages_html) {
     msg_list.innerHTML += messages_html;
+    msg_list.scrollTo({behavior: 'smooth', block: 'end' });
 }
 
 function get_start_id() {
@@ -15,27 +16,6 @@ function get_start_id() {
         }
     });
     return start_id;
-}
-
-function update_messages(conv_id) {
-    $.ajax({
-        type: 'POST',
-        url: "/conv/update",
-        data: {conv_id: conv_id, start_id: get_start_id()},
-        success: function(response) {
-            if (response['error']) {
-                append_message_list(`<p class="text-danger">${response['error']}</p>`);
-            } else if (response['messages']) {
-                append_message_list(response['messages']);
-            }
-            if (response['busy']) {
-                setTimeout(update_messages, 1000, conv_id);
-            }
-        },
-        error: function(response) {
-            append_message_list(`<p class="text-danger">Cannot update messages. HTTP status ${response.status}</p>`)
-        }
-    });
 }
 
 async function add_conversation() {
@@ -64,6 +44,29 @@ async function add_conversation_ui() {
     location.href = `/conv/${conv_id}`;
 }
 
+function update_messages(conv_id) {
+    $.ajax({
+        type: 'POST',
+        url: "/conv/update",
+        data: {conv_id: conv_id, start_id: get_start_id()},
+        success: function(response) {
+            if (response['error']) {
+                append_message_list(`<p class="text-danger">${response['error']}</p>`);
+            } else {
+                append_message_list(response['messages']);
+                const title_node = document.querySelector(`a[href="/conv/${conv_id}"] div`);
+                if (title_node) {title_node.textContent = response['title'];}
+            }
+            if (response['busy']) {
+                setTimeout(update_messages, 1000, conv_id);
+            }
+        },
+        error: function(response) {
+            append_message_list(`<p class="text-danger">Cannot update messages. HTTP status ${response.status}</p>`)
+        }
+    });
+}
+
 $('#conv-send').submit(async function(event) {
     event.preventDefault();
     user_message.readOnly = true;
@@ -77,7 +80,6 @@ $('#conv-send').submit(async function(event) {
         }
         form[0].conv_id.value = conv_id;
     }
-
     $.ajax({
         type: 'POST',
         url: action_target,

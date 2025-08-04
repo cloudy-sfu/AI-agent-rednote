@@ -6,13 +6,13 @@ certifi==2025.1.31
 charset-normalizer==3.4.1
 click==8.1.8
 colorama==0.4.6
+demjson3==3.0.6
 distro==1.9.0
 Flask==3.1.0
 h11==0.16.0
 httpcore==1.0.9
 httpx==0.28.1
 idna==3.10
-iniconfig==2.1.0
 itsdangerous==2.2.0
 Jinja2==3.1.6
 jiter==0.9.0
@@ -24,12 +24,9 @@ openai==1.67.0
 packaging==24.2
 pandas==2.2.3
 pipdeptree==2.25.1
-pluggy==1.5.0
 pycryptodome==3.22.0
 pydantic==2.10.6
 pydantic_core==2.27.2
-PySocks==1.7.1
-pytest==8.3.5
 python-dateutil==2.9.0.post0
 pytz==2025.1
 requests==2.32.3
@@ -40,5 +37,5 @@ soupsieve==2.6
 tqdm==4.67.1
 typing_extensions==4.12.2
 tzdata==2025.1
-urllib3==2.3.0
+urllib3==2.5.0
 Werkzeug==3.1.3

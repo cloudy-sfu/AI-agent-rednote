@@ -35,19 +35,9 @@ If you have [Chromium-based browsers](https://en.wikipedia.org/wiki/Chromium_(we
 >
 > The output table must be saved in CSV format.
 
-Deploy a GPT model that supports [function calling](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/function-calling) in [Azure OpenAI Service](https://learn.microsoft.com/en-us/azure/ai-services/openai/), for example `gpt-4o`.
+Get an OpenAI API key for a model which supports [function calling](https://platform.openai.com/docs/guides/function-calling?api-mode=chat), for example `gpt-4o`. This program calls `gpt-4o` by default if not customized.
 
-Create a JSON file `config.json` in the program's root directory. Fill in API key, API version (in format of [date](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes) string `%Y-%m-%d`), endpoint (in format of `https://*.openai.azure.com/`), model type (e.g. `gpt-4o`), and deployment name. The schema is shown as follows.
 
-```json
-{
-  "azure_api_key": "",
-  "azure_api_version": "",
-  "azure_endpoint": "",
-  "azure_model_type": "",
-  "azure_deployment_name": ""
-}
-```
 
 ## Usage
 
@@ -59,18 +49,10 @@ python app.py
 
 When the program hints that `rednote` cookies are expired: 
 
-- Visit `rednote` and log in your account
-- Export cookies by J2TEAMS extension (a file will be downloaded)
-- Upload the file in this program's hint page
+- Visit https://www.xiaohongshu.com/explore and log in your account.
+- Visit https://as.xiaohongshu.com/ and export cookies by J2TEAMS extension (a file will be downloaded).
+- Upload the file in this program's "Cookies" page.
 
-*You can replace cookies (therefore can switch between `rednote` accounts) by click "replace cookies" at left-bottom corner of main page. Existed conversations will not be affected by replacing cookies. Therefore, the conversations, which is created long time ago, cannot continue visiting data fetching tools.*
+*You can replace cookies (therefore can switch between `rednote` accounts) in "Cookies" page at the navigator. Existed conversations will not be affected by replacing cookies. Therefore, those conversations, which are created long time ago, cannot continue visiting data fetching tools as the cookies are expired.*
 
 If AI agent is too radical to filter the user's message, adjust thresholds to "high" in [content filtering](https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/content-filtering).
-
-Tested API:
-
-| Model type | API version |
-| ---------- | ----------- |
-| gpt-4o     | 2024-02-01  |
-
-*Other models & API versions may be compatible to this application, but not guaranteed.*

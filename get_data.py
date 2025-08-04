@@ -238,7 +238,15 @@ class Detail:
         self.cookies = cookies
         self.header = header_explore
 
-    def get(self, id_: str, xsec_token: str):
+    def get(self, id_list: list[str], xsec_token_list: list[str]):
+        results = []
+        for id_, xsec_token in zip(id_list, xsec_token_list):
+            result = self._get_one(id_, xsec_token)
+            if result is not None:
+                results.append(result)
+        return results
+
+    def _get_one(self, id_: str, xsec_token: str):
         url = f"https://www.xiaohongshu.com/explore/{id_}?xsec_token={xsec_token}"
         response = self.session.get(url, cookies=self.cookies, headers=self.header)
         assert response.status_code == 200, \
@@ -257,7 +265,11 @@ class Detail:
         script_text = re.sub("undefined", "null", script_text)
         initial_state = json.loads(script_text)
 
-        note = initial_state['note']['noteDetailMap'][id_]['note']
+        try:
+            note = initial_state['note']['noteDetailMap'][id_]['note']
+        except KeyError:
+            logging.warning(f"Post {url} does not exist.")
+            return None
         published_time_stamp = note.get('time')
         if published_time_stamp:
             published_time = pd.Timestamp(published_time_stamp, unit='ms', tz='Asia/Shanghai')
