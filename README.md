@@ -1,8 +1,11 @@
 # AI agent `rednote`
- AI agent for www.xiaohongshu.com thread
+ AI agent for [www.xiaohongshu.com](http://www.xiaohongshu.com/) thread
 
 ![](https://shields.io/badge/dependencies-Python_3.12-blue)
-![](https://shields.io/badge/dependencies-Azure_OpenAI_Service-blue)
+[![](https://shields.io/badge/dependencies-OpenAI_Platform-purple)](https://platform.openai.com/docs/overview)
+[![](https://shields.io/badge/dependencies-rednote-red)](https://www.xiaohongshu.com/explore)
+
+![image-20250805130041495](./assets/image-20250805130041495.png)
 
 
 ## Acknowledgement
@@ -18,6 +21,8 @@ Create and activate a Python 3.12 virtual environment. Set the current directory
 ```
 pip install -r requirements.txt
 ```
+
+
 
 If you have [Chromium-based browsers](https://en.wikipedia.org/wiki/Chromium_(web_browser)#Browsers_based_on_Chromium), please install [J2TEAM cookies](https://chromewebstore.google.com/detail/j2team-cookies/okpidcojinmlaakglciglbpcpajaibco) extension. Otherwise, you need to find an alternative extension or manually copy any website's cookies from browser.
 
@@ -35,11 +40,15 @@ If you have [Chromium-based browsers](https://en.wikipedia.org/wiki/Chromium_(we
 >
 > The output table must be saved in CSV format.
 
+
+
 Get an OpenAI API key for a model which supports [function calling](https://platform.openai.com/docs/guides/function-calling?api-mode=chat), for example `gpt-4o`. This program calls `gpt-4o` by default if not customized.
 
-
-
 ## Usage
+
+Activate a Python 3.12 virtual environment. 
+
+Set the current directory to the program's root directory. 
 
 Run the following command.
 
@@ -47,12 +56,9 @@ Run the following command.
 python app.py
 ```
 
-When the program hints that `rednote` cookies are expired: 
+In the popped-up web page, 
 
-- Visit https://www.xiaohongshu.com/explore and log in your account.
-- Visit https://as.xiaohongshu.com/ and export cookies by J2TEAMS extension (a file will be downloaded).
-- Upload the file in this program's "Cookies" page.
+- Navigate to "Settings" page. Fill in OpenAI API key and choose the model.
+- Navigate to "Cookies" page. Upload `rednote` cookies following the instruction.
+- Go back to home page and start chatting.
 
-*You can replace cookies (therefore can switch between `rednote` accounts) in "Cookies" page at the navigator. Existed conversations will not be affected by replacing cookies. Therefore, those conversations, which are created long time ago, cannot continue visiting data fetching tools as the cookies are expired.*
-
-If AI agent is too radical to filter the user's message, adjust thresholds to "high" in [content filtering](https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/content-filtering).
