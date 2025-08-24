@@ -304,9 +304,9 @@ def view_config():
 @app.route('/config/update', methods=['POST'])
 def update_config():
     config_received = request.form.to_dict()
-    with suppress(ValueError):
-        config_received['max_func_call_rounds'] = int(
-            config_received.get('max_func_call_rounds'))
+    with (suppress(ValueError)):
+        config_received['max_func_call_rounds'] = \
+        int(config_received.get('max_func_call_rounds'))
     config.update(config_received)
     config.save()
     return redirect('/')
