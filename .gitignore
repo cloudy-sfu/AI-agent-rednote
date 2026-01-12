@@ -161,6 +161,4 @@ cython_debug/
 
 raw/
 .run/
-config.json
-log
-main.bat
+cherry_studio_windows.bat

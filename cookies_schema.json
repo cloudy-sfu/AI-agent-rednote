@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Xiaohongshu Cookie Export",
+  "description": "Schema for validating exported browser cookies from as.xiaohongshu.com.",
+  "type": "object",
+  "required": [
+    "cookies"
+  ],
+  "properties": {
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "The origin URL from which the cookies were exported (e.g., https://as.xiaohongshu.com)."
+    },
+    "cookies": {
+      "type": "array",
+      "description": "A list of cookie objects containing session and authentication data.",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "value",
+          "expirationDate"
+        ],
+        "properties": {
+          "domain": {
+            "type": "string",
+            "description": "The domain scope of the cookie (e.g., .xiaohongshu.com)."
+          },
+          "expirationDate": {
+            "type": "number",
+            "description": "The Unix timestamp (in seconds, allowing floating-point precision) indicating when the cookie will expire and be deleted by the browser."
+          },
+          "hostOnly": {
+            "type": "boolean",
+            "description": "Indicates if the cookie is available only to the host specified in the domain attribute."
+          },
+          "httpOnly": {
+            "type": "boolean",
+            "description": "If true, the cookie is inaccessible to the JavaScript Document.cookie API, used to prevent XSS attacks."
+          },
+          "name": {
+            "type": "string",
+            "description": "The unique key identifier for the cookie (e.g., 'web_session', 'a1', 'gid')."
+          },
+          "path": {
+            "type": "string",
+            "description": "The URL path prefix for which the cookie is valid."
+          },
+          "sameSite": {
+            "type": "string",
+            "enum": [
+              "no_restriction",
+              "lax",
+              "strict",
+              "unspecified"
+            ],
+            "description": "Asserts how the cookie should behave regarding cross-site requests."
+          },
+          

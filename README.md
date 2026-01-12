@@ -1,64 +1,133 @@
-# AI agent `rednote`
- AI agent for [www.xiaohongshu.com](http://www.xiaohongshu.com/) thread
+# MCP: "rednote" assistant
+MCP server which collects data from www.xiaohongshu.com social media
 
-![](https://shields.io/badge/dependencies-Python_3.12-blue)
-[![](https://shields.io/badge/dependencies-OpenAI_Platform-purple)](https://platform.openai.com/docs/overview)
-[![](https://shields.io/badge/dependencies-rednote-red)](https://www.xiaohongshu.com/explore)
-
-![image-20250805130041495](./assets/image-20250805130041495.png)
+![](https://shields.io/badge/dependencies-Python_3.13-blue)
+[![](https://shields.io/badge/dependencies-Cherry_Studio_≥_1.7.8-red)](https://www.cherry-ai.com/)
+[![](https://shields.io/badge/dependencies-rednote-BE0000)](https://www.xiaohongshu.com/explore)
+![](https://shields.io/badge/OS-Windows_≥_10-lightgrey)
 
 
 ## Acknowledgement
 
 [xhshow](https://github.com/Cloxl/xhshow) (modified)
 
+
+
 ## Install
 
-Make sure you have a [rednote](https://www.xiaohongshu.com) social media account.
+### Cookies extraction tool
 
-Create and activate a Python 3.12 virtual environment. Set the current directory to the program's root directory. Run the following command.
+If you have [Chromium-based browsers](https://en.wikipedia.org/wiki/Chromium_(web_browser)#Browsers_based_on_Chromium), please install [J2TEAM cookies](https://chromewebstore.google.com/detail/j2team-cookies/okpidcojinmlaakglciglbpcpajaibco) extension. Otherwise, you need to find an alternative extension to export, or manually copy cookies to local file.
+
+>   [!NOTE]
+>
+>   Format of extracted cookies is described by JSON schema `cookies_schema.json`.
+>
+>   If you don't use J2TEAM cookies, you can use [JSON schema editor](https://github.com/cloudy-sfu/JSON-schema-editor) to check whether the extracted cookies have the same format. Open `cookies_schema.json` (template) and validate the extracted cookies (instances).
+
+### Python program
+
+Create and a Python 3.13 virtual environment and activate. Run the following command.
 
 ```
 pip install -r requirements.txt
+python install_cherry_studio_windows.py
 ```
 
+Save the output before closing, because the output is MCP configuration information.
+
+### Extract "rednote" cookies
+
+Confirm you have a [rednote](www.xiaohongshu.com) account.
+
+Visit https://www.xiaohongshu.com and log in your "rednote" account.
+
+Export the cookies with J2TEAMS Cookies or alternatives.
+
+Copy the absolute path of the created cookies file to MCP configuration, after `xiaohongshu_cookies_path=` in environment variables.
 
 
-If you have [Chromium-based browsers](https://en.wikipedia.org/wiki/Chromium_(web_browser)#Browsers_based_on_Chromium), please install [J2TEAM cookies](https://chromewebstore.google.com/detail/j2team-cookies/okpidcojinmlaakglciglbpcpajaibco) extension. Otherwise, you need to find an alternative extension or manually copy any website's cookies from browser.
+### Cherry studio
 
-> [!NOTE]
->
-> Function `auth.dump_cookies` is designed to load J2TEAM output files. If you use an alternative extension or manually paste the cookies, you need to modify this function, because pasted cookies table is in different format.
->
-> The output table of `auth.dump_cookies` must have the following columns at least:
->
-> - `name`
-> - `value`
-> - `expirationDate`  the expiry date of this cookies item
->
-> Other columns are ignored.
->
-> The output table must be saved in CSV format.
+Confirm you have Cherry Studio (version 1.7.8 or above), and already have access to any large language models via API key.
+
+In cherry studio, go to "settings > MCP servers". (You don't need to open the warning symbol and install "uv" and "bun".)
+
+![image-20260111151624561](./assets/image-20260111151624561.png)
+
+Click "Add" to create a new MCP server. Fill the form with the information from the output of Python program mentioned above (temporarily saved in a text file).
+
+![image-20260111151717131](./assets/image-20260111151717131.png)
+
+Fill MCP server form with MCP configuration information mentioned above.
+
+### Update version
+
+In MCP servers settings, turn off and on "rednote-assistant" MCP server.
+
+In conversation MCP server tab, clear and redo clicking "rednote-assistant"MCP server.
 
 
-
-Get an OpenAI API key for a model which supports [function calling](https://platform.openai.com/docs/guides/function-calling?api-mode=chat), for example `gpt-4o`. This program calls `gpt-4o` by default if not customized.
 
 ## Usage
 
-Activate a Python 3.12 virtual environment. 
+In Cherry Studio, go to "Settings > MCP servers" page, enable "rednote-assistant" MCP server that you installed.
 
-Set the current directory to the program's root directory. 
+![image-20260111151717131](./assets/image-20260111151717131.png)
 
-Run the following command.
+>   [!Caution]
+>
+>   Don't use the "enable" button in MCP server list.
+>
+>   According to the behavior Cherry Studio v1.7.8, ths button will enable MCP server anyway even if the server fails.
+>
+>   ![image-20260111154516398](./assets/image-20260111154516398.png)
 
-```
-python app.py
-```
 
-In the popped-up web page, 
 
-- Navigate to "Settings" page. Fill in OpenAI API key and choose the model.
-- Navigate to "Cookies" page. Upload `rednote` cookies following the instruction.
-- Go back to home page and start chatting.
+Start a new conversation with any large language model which supports MCP servers.
+
+Enable "rednote-assistant" MCP server.
+
+>   [!WARNING]
+>
+>   In some large language models, MCP servers conflict with the model's built-in web search function.
+
+![image-20260111154757612](./assets/image-20260111154757612.png)
+
+Input "/mcp" in the message box and select "MCP Prompts".
+
+![image-20260111181144493](./assets/image-20260111181144493.png)
+
+Select `rednote_assistant_general_workflow`. The text will be generated to the message box.
+
+![image-20260111181627531](./assets/image-20260111181627531.png)
+
+Remove `/**User:** ` prefix. The remaining part tells large language models how to use "rednote-assistant" MCP server.
+
+Send this message to the large language model. If you would like letting large language model know the workflow persistently and automatically, append it to your assistant role prompt.
+
+>   [!NOTE]
+>
+>   **Edit assistant role prompt**
+>
+>   In the conversation page, click "Assistants" tab and "Add Assistant". Select type "Assistant".
+>
+>   Go to "Prompt Settings" tab and config as follows.
+>
+>   Input the prompt mentioned above to "Prompt" field and save.
+>
+>   ![image-20260111182112646](./assets/image-20260111182112646.png)
+>
+>   
+
+### Maintain cookies
+
+The "rednote" cookies will be invalidated by "rednote" website from time to time. If you find MCP tools have problems because of invalid cookies, update as follows.
+
+Follow the instruction in "Install > Extract rednote cookies" and update the value of `xiaohongshu_cookies_path` in MCP server config to the path of new cookies file.
+
+In MCP servers settings, turn off and on "rednote-assistant" MCP server.
+
+In conversation MCP server tab, clear and redo clicking "rednote-assistant"MCP server.
 
