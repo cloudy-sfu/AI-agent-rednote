@@ -107,7 +107,7 @@ def get_feed(pages: int):
     return json.dumps(posts)
 
 
-# @mcp.tool()
+@mcp.tool()
 def search(query: str, pages: int):
     """
     Search posts by keyword or query terms. Use this function when you want to find posts
@@ -128,11 +128,9 @@ def search(query: str, pages: int):
             user_xsec_token: Token for author's homepage (not useful)
     """
     session = Session()
-    initial_timestamp = None
     posts = []
     for page in range(pages):
-        new_posts, has_more, initial_timestamp = search_page(
-            session, cookies, query, page, initial_timestamp)
+        new_posts, has_more = search_page(session, cookies, query, page)
         posts += new_posts
         if not has_more:
             break

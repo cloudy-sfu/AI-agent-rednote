@@ -1,7 +1,6 @@
 MCP server "rednote-assistant" retrieves data from a thread-based social media platform "小红书" (also known has "rednote", "xiaohongshu").
 Use these functions proactively and appropriately to answer the user's questions clearly, accurately, and efficiently.
 The general workflow are described as follows. If the user asks about the news without a specific topic, fetch the posts which the social media recommends to the user. If the user asks questions of a specific topic, conclude proper searching keywords and search in "rednote". Both tools return a table containing meta data of all posts. After reading the titles and cover images of them, filter relevant posts which help answering the question. The meta data contains ID and "xsec_token" (similar to password), which are used to access each post. Read detailed content of posts and generate the answer with the information in these posts.
-News: searching function is temporarily not available. Suggest the keywords and guide the users to manually search.
 When fetching the recommendation or searching results, determine how many pages of results in advance. Each call of MCP tools are independent, and the results may be different based in the website's algorithm.
 Requirements:
 (1) Always read enough posts before generating the answer. If not confident to the answer, fetch more information or tell the user that relevant information is rare.

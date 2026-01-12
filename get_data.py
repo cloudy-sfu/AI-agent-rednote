@@ -12,11 +12,14 @@ from xhshow.encrypt.misc_encrypt import x_b3_traceid, x_xray_traceid, search_id
 from xhshow.encrypt.xs_encrypt import encrypt_xs
 from xhshow.encrypt.xsc_encrypt import encrypt_xsc
 from xhshow.extractor.extract_initial_state import extract_initial_state
+from xhshow.client import sign_xs, sign_xs_common
 
 with open("headers/explore.json", "r") as f:
     header_explore = json.load(f)
 with open("headers/homefeed.json", "r") as f:
     header_homefeed = json.load(f)
+with open("headers/search.json", "r") as f:
+    header_search = json.load(f)
 
 
 def feed_first_page(session, cookies):
@@ -26,7 +29,7 @@ def feed_first_page(session, cookies):
         cookies=cookies,
     )
     assert response.status_code == 200, "Fail to fetch home page of xiaohongshu."
-    initial_timestamp = round(time.time() * 1000)
+    initial_timestamp = int(time.time() * 1000)
     initial_state = extract_initial_state(response.text, replacements)
     posts = []
     for feed in initial_state['feed']['feeds']:
@@ -69,8 +72,8 @@ def feed_subsequent_page(
     header_ = header_homefeed.copy()
     payload_str = json.dumps(payload, separators=(',', ':'))
     logging.info(f"POST --URL /api/sns/web/v1/homefeed --Payload {payload_str}")
-    current_timestamp = round(time.time() * 1000)
-    sc = round((current_timestamp - initial_timestamp) / 30000)
+    current_timestamp = int(time.time() * 1000)
+    sc = int((current_timestamp - initial_timestamp) / 30000)
     x_t = str(current_timestamp)
     x_b3_trace_id = x_b3_traceid()
     x_s = encrypt_xs(
@@ -121,48 +124,50 @@ def feed_subsequent_page(
 
 
 def search_page(
-        session, cookies, query, page, initial_timestamp=None):
-    if initial_timestamp is None:
-        initial_timestamp = round(time.time() * 1000)
-    header_ = header_homefeed.copy()
-    current_timestamp = round(time.time() * 1000)
+        session, cookies, query, page):
+    current_timestamp = int(time.time() * 1000)
     payload = {
-        "ext_flags": [],
-        "image_formats": ["jpg", "webp", "avif"],
         "keyword": query,
-        "note_type": 0,
         "page": page + 1,
         "page_size": 20,
         "search_id": search_id(current_timestamp),
         "sort": "general",
+        "note_type": 0,
+        "ext_flags": [],
+        "filters": [{"tags": ["general"], "type": "sort_type"},
+                    {"tags": ["不限"], "type": "filter_note_type"},
+                    {"tags": ["不限"], "type": "filter_note_time"},
+                    {"tags": ["不限"], "type": "filter_note_range"},
+                    {"tags": ["不限"], "type": "filter_pos_distance"}],
+        "geo": "",
+        "image_formats": ["jpg", "webp", "avif"],
     }
     payload_str = json.dumps(payload, separators=(',', ':'), ensure_ascii=False)
     logging.info(f"POST --URL /api/sns/web/v1/search/notes --Payload {payload_str}")
 
     # Build the header
-    sc = round((current_timestamp - initial_timestamp) / 30000)
+    header_ = header_search.copy()
     x_t = str(current_timestamp)
     x_b3_trace_id = x_b3_traceid()
-    x_s = encrypt_xs(
-        url="/api/sns/web/v1/search/notes" + payload_str,
-        a1=cookies['a1'],
-        ts=x_t,
-        platform=cookies['xsecappid'],
+    x_s = sign_xs(
+        method="POST",
+        uri="/api/sns/web/v1/search/notes",
+        payload=payload,
+        a1_value=cookies['a1'],
+        timestamp=current_timestamp,
+        xsec_appid=cookies['xsecappid'],
     )
-    x_s_common = encrypt_xsc(
-        xs=x_s,
-        xt=x_t,
-        platform=cookies['xsecappid'],
-        a1=cookies['a1'],
-        x4=cookies['webBuild'],
-        sc=sc,
+    x_s_common = sign_xs_common(
+        user_agent=header_['user-agent'],
+        cookie_dict=cookies,
+        timestamp=current_timestamp
     )
-    header_['content-length'] = str(len(payload_str))
     header_['x-b3-traceid'] = x_b3_trace_id
     header_['x-s'] = x_s
     header_['x-s-common'] = x_s_common
     header_['x-t'] = x_t
-    header_['x-xray-traceid'] = x_xray_traceid(x_b3_trace_id)
+    header_['x-xray-traceid'] = x_xray_traceid(current_timestamp)
+
     response = session.post(
         url="https://edith.xiaohongshu.com/api/sns/web/v1/search/notes",
         data=payload_str,
@@ -178,7 +183,7 @@ def search_page(
     if 'items' not in response_json['data'].keys():
         logging.info(f"The current page is {page+1} and no more searching results.")
         has_more = False
-        return posts, has_more, initial_timestamp
+        return posts, has_more
 
     for item in response_json['data']['items']:
         if not item['model_type'] == 'note':
@@ -196,7 +201,7 @@ def search_page(
         posts.append(post)
     has_more = response_json['data']['has_more']
     time.sleep(random.uniform(0.7, 1.3))
-    return posts, has_more, initial_timestamp
+    return posts, has_more
 
 
 def get_details_(session, cookies, id_list: list[str], xsec_token_list: list[str]):

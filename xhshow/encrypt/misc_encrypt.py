@@ -26,12 +26,12 @@ def random_str(length: Integral) -> str:
 
 
 def base36encode(number: Integral,
-                 alphabet: Iterable[str] = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ') -> str:
+                 alphabet: Iterable[str] = '0123456789abcdefghijklmnopqrstuvwxyz') -> str:
     """
     将数字转换为base36编码
     Args:
         number: 需要base36的数字
-        alphabet: base36的字符集 默认: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        alphabet: base36的字符集 默认: 0123456789abcdefghijklmnopqrstuvwxyz
     Returns:
         base36编码后的内容
     """
@@ -102,19 +102,8 @@ def triplet_to_base64(e):
     )
 
 
-def get_a1_and_web_id() -> tuple:
-    """
-    生成 a1 和 webid
-    Returns:
-        tuple(a1, webid)
-    """
-    d = hex(int(time.time() * 1000))[2:] + random_str(30) + "5" + "0" + "000"
-    g = (d + str(binascii.crc32(str(d).encode('utf-8'))))[:52]
-    return g, hashlib.md5(g.encode('utf-8')).hexdigest()
-
-
-def x_b3_traceid() -> str:
-    return secrets.token_hex(8)
+def x_b3_traceid(hex_chars="abcdef0123456789", b3_traceid_length=16) -> str:
+    return "".join(random.choice(hex_chars) for _ in range(b3_traceid_length))
 
 
 def search_id(timestamp: int) -> str:
@@ -123,5 +112,15 @@ def search_id(timestamp: int) -> str:
     return base36encode((e + t))
 
 
-def x_xray_traceid(x_b3: str) -> str:
-    return hashlib.md5(x_b3.encode('utf-8')).hexdigest()
+def x_xray_traceid(timestamp, max_seq=8388607) -> str:
+    # default max_seq: 2**23-1
+    seq = random.randint(0, max_seq)
+    timestamp_shift = 23
+    part_1_length = 16
+    part_2_length = 16
+    part1 = format(
+        ((timestamp << timestamp_shift) | seq),
+        f"0{part_1_length}x",
+    )
+    part_2 = x_b3_traceid(b3_traceid_length=part_2_length)
+    return part1 + part_2

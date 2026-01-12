@@ -14,5 +14,5 @@ while i < n - 1:
         continue
     key = key.rstrip(':')
     header[key] = value
-with open("format_header.json", "w") as f:
+with open("../tests/format_header.json", "w") as f:
     json.dump(header, f, indent=4)
