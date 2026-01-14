@@ -7,12 +7,9 @@ import time
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from xhshow.config import replacements
-from xhshow.encrypt.misc_encrypt import x_b3_traceid, x_xray_traceid, search_id
-from xhshow.encrypt.xs_encrypt import encrypt_xs
-from xhshow.encrypt.xsc_encrypt import encrypt_xsc
-from xhshow.extractor.extract_initial_state import extract_initial_state
 from xhshow.client import sign_xs, sign_xs_common
+from xhshow.extract_initial_state import extract_initial_state
+from xhshow.misc_encrypt import x_b3_traceid, x_xray_traceid, search_id
 
 with open("headers/explore.json", "r") as f:
     header_explore = json.load(f)
@@ -29,8 +26,7 @@ def feed_first_page(session, cookies):
         cookies=cookies,
     )
     assert response.status_code == 200, "Fail to fetch home page of xiaohongshu."
-    initial_timestamp = int(time.time() * 1000)
-    initial_state = extract_initial_state(response.text, replacements)
+    initial_state = extract_initial_state(response.text)
     posts = []
     for feed in initial_state['feed']['feeds']:
         post = {
@@ -46,66 +42,66 @@ def feed_first_page(session, cookies):
         }
         posts.append(post)
     time.sleep(random.uniform(0.7, 1.3))
-    return posts, initial_timestamp
+    return posts
 
 
 def feed_subsequent_page(
-        session, cookies, initial_timestamp, note_index, n, page, cursor_score):
+        session, cookies, note_index, page, cursor_score):
     if page == 1:  # second page
         refresh_type = 1
     else:
         refresh_type = 3
     payload = {
-        "category": "homefeed_recommend",
         "cursor_score": cursor_score,
-        "image_formats": ["jpg", "webp", "avif"],
-        "need_num": n - 25,
-        "note_index": note_index + n * (page - 1),  # page number starts from 0
-        "num": n,
+        "num": 39,
         "refresh_type": refresh_type,
-        "search_key": "",
+        "note_index": note_index + 39 * (page - 1),  # page number starts from 0
         "unread_begin_note_id": "",
         "unread_end_note_id": "",
         "unread_note_count": 0,
+        "category": "homefeed_recommend",
+        "search_key": "",
+        "need_num": 14,
+        "image_formats": ["jpg", "webp", "avif"],
         "need_filter_image": False,
     }
     header_ = header_homefeed.copy()
-    payload_str = json.dumps(payload, separators=(',', ':'))
+    payload_str = json.dumps(payload, ensure_ascii=False)
     logging.info(f"POST --URL /api/sns/web/v1/homefeed --Payload {payload_str}")
     current_timestamp = int(time.time() * 1000)
-    sc = int((current_timestamp - initial_timestamp) / 30000)
     x_t = str(current_timestamp)
     x_b3_trace_id = x_b3_traceid()
-    x_s = encrypt_xs(
-        url="/api/sns/web/v1/homefeed" + payload_str,
-        a1=cookies['a1'],
-        ts=x_t,
-        platform=cookies['xsecappid'],
+    x_s = sign_xs(
+        method="POST",
+        uri="/api/sns/web/v1/homefeed",
+        a1_value=cookies['a1'],
+        timestamp=current_timestamp,
+        xsec_appid=cookies['xsecappid'],
+        payload=payload,
     )
-    x_s_common = encrypt_xsc(
-        xs=x_s,
-        xt=x_t,
-        platform=cookies['xsecappid'],
-        a1=cookies['a1'],
-        x4=cookies['webBuild'],
-        sc=sc,
+    x_s_common = sign_xs_common(
+        cookie_dict=cookies,
+        user_agent=header_['user-agent'],
+        timestamp=current_timestamp
     )
     header_['content-length'] = str(len(payload_str))
     header_['x-b3-traceid'] = x_b3_trace_id
     header_['x-s'] = x_s
     header_['x-s-common'] = x_s_common
     header_['x-t'] = x_t
-    header_['x-xray-traceid'] = x_xray_traceid(x_b3_trace_id)
+    header_['x-xray-traceid'] = x_xray_traceid(current_timestamp)
     response = session.post(
         url="https://edith.xiaohongshu.com/api/sns/web/v1/homefeed",
         data=payload_str,
         cookies=cookies,
         headers=header_,
     )
-    assert response.status_code == 200, "Fail to fetch subsequent xiaohongshu thread."
+    assert response.status_code == 200, \
+        (f"Fail to fetch xiaohongshu thread. Page: {page} (starts from 0). "
+         f"Status code: {response.status_code}. Text: {response.text}")
     response_json = response.json()
-    assert response_json['success'] == True, (f"Fail to fetch, website's message: "
-                                              f"{response_json['msg']}.")
+    assert response_json['success'] == True, \
+        f"Fail to fetch, website's message: {response_json['msg']}."
     cursor_score = response_json['data']['cursor_score']
     posts = []
     for item in response_json['data']['items']:
@@ -142,7 +138,7 @@ def search_page(
         "geo": "",
         "image_formats": ["jpg", "webp", "avif"],
     }
-    payload_str = json.dumps(payload, separators=(',', ':'), ensure_ascii=False)
+    payload_str = json.dumps(payload, ensure_ascii=False)
     logging.info(f"POST --URL /api/sns/web/v1/search/notes --Payload {payload_str}")
 
     # Build the header

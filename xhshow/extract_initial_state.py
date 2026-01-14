@@ -1,19 +1,17 @@
-import json
 import logging
 import re
 
-from bs4 import BeautifulSoup
 import demjson3
+from bs4 import BeautifulSoup
 
 
-def extract_initial_state(html_content: str, replacements: dict) -> dict | None:
+def extract_initial_state(html_content: str) -> dict | None:
     """
     从HTML中的<script>标签中提取window.__INITIAL_STATE__ 解析并保存为JSON格式
 
     如果未找到 window.__INITIAL_STATE__ 函数会返回 None 并输出响应的HTML内容
     Args:
         html_content: html文档内容
-        replacements: js对象转json需要替换的字符串对应关系
     Returns:
         dict: 提取并格式化后的JSON数据
     """

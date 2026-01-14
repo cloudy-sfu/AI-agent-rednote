@@ -1,13 +1,13 @@
-import binascii
-import hashlib
 import random
-import secrets
 import string
-import time
 from collections.abc import Iterable
 from numbers import Integral
 
-from xhshow.config import lookup
+lookup = [
+    "Z", "m", "s", "e", "r", "b", "B", "o", "H", "Q", "t", "N", "P", "+", "w", "O", "c", "z", "a", "/", "L", "p", "n",
+    "g", "G", "8", "y", "J", "q", "4", "2", "K", "W", "Y", "j", "0", "D", "S", "f", "d", "i", "k", "x", "3", "V", "T",
+    "1", "6", "I", "l", "U", "A", "F", "M", "9", "7", "h", "E", "C", "v", "u", "R", "X", "5",
+]
 
 
 def encode_utf8(text) -> list:

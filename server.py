@@ -72,7 +72,7 @@ def get_feed(pages: int):
     assert pages >= 1, "Number of pages must be a positive integer."
 
     session = Session()
-    posts, initial_timestamp = feed_first_page(session, cookies)
+    posts = feed_first_page(session, cookies)
     if pages == 1:
         return json.dumps(posts)
     cursor_score = ""
@@ -80,9 +80,7 @@ def get_feed(pages: int):
         new_posts, cursor_score = feed_subsequent_page(
             session=session,
             cookies=cookies,
-            initial_timestamp=initial_timestamp,
-            note_index=posts.shape[0],
-            n=15,
+            note_index=len(posts) - 1,
             page=page,
             cursor_score=cursor_score
         )
