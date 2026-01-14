@@ -21,8 +21,6 @@ cherry_studio_setting = rf"""Cherry studio settings are as follows.
 Name: rednote-assistant
 Type: Standard Input/Output (stdio)
 Command: {base_dir}\cherry_studio_windows.bat
-Environment variables: 
-    xiaohongshu_cookies_path=
 """
 
 print(cherry_studio_setting)

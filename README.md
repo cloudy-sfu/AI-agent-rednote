@@ -21,91 +21,106 @@ If you have [Chromium-based browsers](https://en.wikipedia.org/wiki/Chromium_(we
 
 >   [!NOTE]
 >
->   Format of extracted cookies is described by JSON schema `cookies_schema.json`.
+>   If you don't use Chromium-based browsers or prefer another way to extract the cookies (alternative extension or manual process), the format of extracted cookies file is defined in JSON schema `cookies_schema.json`.
 >
->   If you don't use J2TEAM cookies, you can use [JSON schema editor](https://github.com/cloudy-sfu/JSON-schema-editor) to check whether the extracted cookies have the same format. Open `cookies_schema.json` (template) and validate the extracted cookies (instances).
+>   [JSON schema editor](https://github.com/cloudy-sfu/JSON-schema-editor) can check whether the extracted cookies file (instance) fits `cookies_schema.json` (template).
 
 ### Python program
+
+Confirm you have a [rednote](www.xiaohongshu.com) account.
+
+Visit https://www.xiaohongshu.com and log in your "rednote" account.
+
+Export the cookies with J2TEAMS Cookies or alternatives to file `$xiaohongshu_cookies_path`.
 
 Create and a Python 3.13 virtual environment and activate. Run the following command.
 
 ```
 pip install -r requirements.txt
 python install_cherry_studio_windows.py
+python cookies.py --input_path $xiaohongshu_cookies_path
 ```
 
 Save the output before closing, because the output is MCP configuration information.
-
-### Extract "rednote" cookies
-
-Confirm you have a [rednote](www.xiaohongshu.com) account.
-
-Visit https://www.xiaohongshu.com and log in your "rednote" account.
-
-Export the cookies with J2TEAMS Cookies or alternatives.
-
-Copy the absolute path of the created cookies file to MCP configuration, after `xiaohongshu_cookies_path=` in environment variables.
-
 
 ### Cherry studio
 
 Confirm you have Cherry Studio (version 1.7.8 or above), and already have access to any large language models via API key.
 
-In cherry studio, go to "settings > MCP servers". (You don't need to open the warning symbol and install "uv" and "bun".)
+In cherry studio, go to "Settings > MCP servers" (no need of "uv" and "bun").
 
 ![image-20260111151624561](./assets/image-20260111151624561.png)
 
-Click "Add" to create a new MCP server. Fill the form with the information from the output of Python program mentioned above (temporarily saved in a text file).
+<div id="fig-1">
+    <i>Figure 1. MCP server list page</i>
+</div>
+
+Click "Add" to create a new MCP server. Fill the form with the information from the output of [Python program](#python-program).
 
 ![image-20260111151717131](./assets/image-20260111151717131.png)
 
-Fill MCP server form with MCP configuration information mentioned above.
+<div id="fig-2">
+    <i>Figure 2. MCP server config page</i>
+</div>
 
 ### Update version
 
-In MCP servers settings, turn off and on "rednote-assistant" MCP server.
+To update this program,
 
-In conversation MCP server tab, clear and redo clicking "rednote-assistant"MCP server.
+1.   In [MCP server config](#fig-2), turn off and on "rednote-assistant" MCP server. 
+
+2.   In [conversation MCP server list](#fig-3), clear and re-select it.
 
 
 
 ## Usage
 
-In Cherry Studio, go to "Settings > MCP servers" page, enable "rednote-assistant" MCP server that you installed.
-
-![image-20260111151717131](./assets/image-20260111151717131.png)
+In Cherry Studio, go to [MCP server config page](#fig-2), enable "rednote-assistant" MCP server.
 
 >   [!Caution]
 >
->   Don't use the "enable" button in MCP server list.
+>   Don't use the "enable" button in [MCP server list](#fig-1).
 >
->   According to the behavior Cherry Studio v1.7.8, ths button will enable MCP server anyway even if the server fails.
+>   According to the behavior Cherry Studio v1.7.8, this button will enable MCP server anyway even if the server fails.
 >
->   ![image-20260111154516398](./assets/image-20260111154516398.png)
 
-
-
-Start a new conversation with any large language model which supports MCP servers.
+Start a new conversation and choose any model which supports MCP servers.
 
 Enable "rednote-assistant" MCP server.
+
+
+![image-20260111154757612](./assets/image-20260111154757612.png)
+
+<div id="fig-3">
+    <i>Figure 3. Conversation MCP server list</i>
+</div>
 
 >   [!WARNING]
 >
 >   In some large language models, MCP servers conflict with the model's built-in web search function.
 
-![image-20260111154757612](./assets/image-20260111154757612.png)
 
-Input "/mcp" in the message box and select "MCP Prompts".
+Input `/mcp` in the message box and select "MCP Prompts".
 
 ![image-20260111181144493](./assets/image-20260111181144493.png)
+
+<div id="fig-4">
+    <i>Figure 4. Conversation MCP functions</i>
+</div>
 
 Select `rednote_assistant_general_workflow`. The text will be generated to the message box.
 
 ![image-20260111181627531](./assets/image-20260111181627531.png)
 
-Remove `/**User:** ` prefix. The remaining part tells large language models how to use "rednote-assistant" MCP server.
+<div id="fig-5">
+    <i>Figure 5. MCP prompts</i>
+</div>
 
-Send this message to the large language model. If you would like letting large language model know the workflow persistently and automatically, append it to your assistant role prompt.
+Remove `/**User:** ` prefix. The remaining part tells models how to use "rednote-assistant" MCP server.
+
+To use MCP server temporarily in an existed conversation, send this message in the conversation.
+
+To let the model knows the workflow persistently, create a new assistant and append it to the role prompt as follows.
 
 >   [!NOTE]
 >
@@ -113,21 +128,29 @@ Send this message to the large language model. If you would like letting large l
 >
 >   In the conversation page, click "Assistants" tab and "Add Assistant". Select type "Assistant".
 >
->   Go to "Prompt Settings" tab and config as follows.
+>   Go to "Prompt Settings" tab.
 >
 >   Input the prompt mentioned above to "Prompt" field and save.
 >
 >   ![image-20260111182112646](./assets/image-20260111182112646.png)
 >
->   
+>   <div id="fig-6">
+>       <i>Figure 6. Role prompt page</i>
+>   </div>
 
 ### Maintain cookies
 
-The "rednote" cookies will be invalidated by "rednote" website from time to time. If you find MCP tools have problems because of invalid cookies, update as follows.
+If MCP server fails to start, go to [MCP server config page](#fig-2) and click "Logs" to find the reason. If the cookies expires or is invalidated by the website, update the cookies as follows.
 
-Follow the instruction in "Install > Extract rednote cookies" and update the value of `xiaohongshu_cookies_path` in MCP server config to the path of new cookies file.
+Extract the new cookies to file `$xiaohongshu_cookies_path`. 
 
-In MCP servers settings, turn off and on "rednote-assistant" MCP server.
+Go to this program's folder, activate Python virtual environment. 
 
-In conversation MCP server tab, clear and redo clicking "rednote-assistant"MCP server.
+Run the following command.
+
+```
+python cookies.py --input_path $xiaohongshu_cookies_path
+```
+
+Do the same action as [updating version](#update-version).
 
