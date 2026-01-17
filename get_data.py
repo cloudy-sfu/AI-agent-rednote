@@ -6,10 +6,9 @@ import time
 
 import pandas as pd
 from bs4 import BeautifulSoup
+from xhshow import Xhshow, SessionManager, CryptoConfig
 
-from xhshow.client import sign_xs, sign_xs_common
-from xhshow.extract_initial_state import extract_initial_state
-from xhshow.misc_encrypt import x_b3_traceid, x_xray_traceid, search_id
+from xhshow_contrib import extract_initial_state, search_id
 
 with open("headers/explore.json", "r") as f:
     header_explore = json.load(f)
@@ -17,12 +16,32 @@ with open("headers/homefeed.json", "r") as f:
     header_homefeed = json.load(f)
 with open("headers/search.json", "r") as f:
     header_search = json.load(f)
+# Humans use the same browser to visit any page of xiaohongshu.com forum, so user-agent
+# should be the same.
+assert header_explore['user-agent'] == header_homefeed['user-agent'] == header_search ['user-agent'], \
+    ("Source code check fails, because user agent of explore & homefeed & search header are "
+     "not unified.")
+client_config = CryptoConfig().with_overrides(
+    PUBLIC_USERAGENT=header_explore['user-agent']
+)
+client = Xhshow(config=client_config)
+# Intermediate constant may be generated
+xhs_session = SessionManager()
 
 
 def feed_first_page(session, cookies):
+    current_timestamp = int(time.time() * 1000)
+    header = client.sign_headers_get(
+        uri="https://www.xiaohongshu.com/explore",
+        cookies=cookies,
+        xsec_appid=cookies['xsecappid'],
+        timestamp=current_timestamp,
+        session=xhs_session,
+    )
+    header.update(header_explore)
     response = session.get(
         url="https://www.xiaohongshu.com/explore",
-        headers=header_explore,
+        headers=header,
         cookies=cookies,
     )
     assert response.status_code == 200, "Fail to fetch home page of xiaohongshu."
@@ -45,12 +64,12 @@ def feed_first_page(session, cookies):
     return posts
 
 
-def feed_subsequent_page(
-        session, cookies, note_index, page, cursor_score):
+def feed_subsequent_page(session, cookies, note_index, page, cursor_score):
     if page == 1:  # second page
         refresh_type = 1
     else:
         refresh_type = 3
+    current_timestamp = int(time.time() * 1000)
     payload = {
         "cursor_score": cursor_score,
         "num": 39,
@@ -65,36 +84,24 @@ def feed_subsequent_page(
         "image_formats": ["jpg", "webp", "avif"],
         "need_filter_image": False,
     }
-    header_ = header_homefeed.copy()
-    payload_str = json.dumps(payload, ensure_ascii=False)
-    logging.info(f"POST --URL /api/sns/web/v1/homefeed --Payload {payload_str}")
-    current_timestamp = int(time.time() * 1000)
-    x_t = str(current_timestamp)
-    x_b3_trace_id = x_b3_traceid()
-    x_s = sign_xs(
-        method="POST",
-        uri="/api/sns/web/v1/homefeed",
-        a1_value=cookies['a1'],
-        timestamp=current_timestamp,
+
+    header = client.sign_headers_post(
+        uri="https://edith.xiaohongshu.com/api/sns/web/v1/homefeed",
+        cookies=cookies,
         xsec_appid=cookies['xsecappid'],
         payload=payload,
+        timestamp=current_timestamp,
+        session=xhs_session,
     )
-    x_s_common = sign_xs_common(
-        cookie_dict=cookies,
-        user_agent=header_['user-agent'],
-        timestamp=current_timestamp
-    )
-    header_['content-length'] = str(len(payload_str))
-    header_['x-b3-traceid'] = x_b3_trace_id
-    header_['x-s'] = x_s
-    header_['x-s-common'] = x_s_common
-    header_['x-t'] = x_t
-    header_['x-xray-traceid'] = x_xray_traceid(current_timestamp)
+    header.update(header_homefeed)
+    logging.info(f"POST --URL /api/sns/web/v1/homefeed --Payload {payload}")
+    payload_str = client.build_json_body(payload)
+
     response = session.post(
         url="https://edith.xiaohongshu.com/api/sns/web/v1/homefeed",
         data=payload_str,
         cookies=cookies,
-        headers=header_,
+        headers=header,
     )
     assert response.status_code == 200, \
         (f"Fail to fetch xiaohongshu thread. Page: {page} (starts from 0). "
@@ -119,8 +126,7 @@ def feed_subsequent_page(
     return posts, cursor_score
 
 
-def search_page(
-        session, cookies, query, page):
+def search_page(session, cookies, query, page):
     current_timestamp = int(time.time() * 1000)
     payload = {
         "keyword": query,
@@ -138,43 +144,30 @@ def search_page(
         "geo": "",
         "image_formats": ["jpg", "webp", "avif"],
     }
-    payload_str = json.dumps(payload, ensure_ascii=False)
-    logging.info(f"POST --URL /api/sns/web/v1/search/notes --Payload {payload_str}")
 
-    # Build the header
-    header_ = header_search.copy()
-    x_t = str(current_timestamp)
-    x_b3_trace_id = x_b3_traceid()
-    x_s = sign_xs(
-        method="POST",
-        uri="/api/sns/web/v1/search/notes",
-        payload=payload,
-        a1_value=cookies['a1'],
-        timestamp=current_timestamp,
+    header = client.sign_headers_post(
+        uri="https://edith.xiaohongshu.com/api/sns/web/v1/search/notes",
+        cookies=cookies,
         xsec_appid=cookies['xsecappid'],
+        payload=payload,
+        timestamp=current_timestamp,
+        session=xhs_session,
     )
-    x_s_common = sign_xs_common(
-        user_agent=header_['user-agent'],
-        cookie_dict=cookies,
-        timestamp=current_timestamp
-    )
-    header_['x-b3-traceid'] = x_b3_trace_id
-    header_['x-s'] = x_s
-    header_['x-s-common'] = x_s_common
-    header_['x-t'] = x_t
-    header_['x-xray-traceid'] = x_xray_traceid(current_timestamp)
+    header.update(header_search)
+    logging.info(f"POST --URL /api/sns/web/v1/search/notes --Payload {payload}")
+    payload_str = client.build_json_body(payload)
 
     response = session.post(
         url="https://edith.xiaohongshu.com/api/sns/web/v1/search/notes",
         data=payload_str,
         cookies=cookies,
-        headers=header_,
+        headers=header,
     )
     assert response.status_code == 200, \
         f"Fail to fetch searching results of page {page+1}."
     response_json = response.json()
-    assert response_json['success'] == True, (f"Fail to fetch, website's message: "
-                                              f"{response_json['msg']}.")
+    assert response_json['success'] == True, \
+        f"Fail to fetch, website's message: {response_json['msg']}."
     posts = []
     if 'items' not in response_json['data'].keys():
         logging.info(f"The current page is {page+1} and no more searching results.")

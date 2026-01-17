@@ -9,7 +9,7 @@ MCP server which collects data from www.xiaohongshu.com social media
 
 ## Acknowledgement
 
-[xhshow](https://github.com/Cloxl/xhshow) (modified)
+[xhshow](https://github.com/Cloxl/xhshow)
 
 
 
@@ -51,17 +51,17 @@ In cherry studio, go to "Settings > MCP servers" (no need of "uv" and "bun").
 
 ![image-20260111151624561](./assets/image-20260111151624561.png)
 
-<div id="fig-1">
+<p id="fig-1">
     <i>Figure 1. MCP server list page</i>
-</div>
+</p>
 
 Click "Add" to create a new MCP server. Fill the form with the information from the output of [Python program](#python-program).
 
 ![image-20260111151717131](./assets/image-20260111151717131.png)
 
-<div id="fig-2">
+<p id="fig-2">
     <i>Figure 2. MCP server config page</i>
-</div>
+</p>
 
 ### Update version
 
@@ -91,9 +91,9 @@ Enable "rednote-assistant" MCP server.
 
 ![image-20260111154757612](./assets/image-20260111154757612.png)
 
-<div id="fig-3">
+<p id="fig-3">
     <i>Figure 3. Conversation MCP server list</i>
-</div>
+</p>
 
 >   [!WARNING]
 >
@@ -104,17 +104,17 @@ Input `/mcp` in the message box and select "MCP Prompts".
 
 ![image-20260111181144493](./assets/image-20260111181144493.png)
 
-<div id="fig-4">
+<p id="fig-4">
     <i>Figure 4. Conversation MCP functions</i>
-</div>
+</p>
 
 Select `rednote_assistant_general_workflow`. The text will be generated to the message box.
 
 ![image-20260111181627531](./assets/image-20260111181627531.png)
 
-<div id="fig-5">
+<p id="fig-5">
     <i>Figure 5. MCP prompts</i>
-</div>
+</p>
 
 Remove `/**User:** ` prefix. The remaining part tells models how to use "rednote-assistant" MCP server.
 
@@ -134,9 +134,9 @@ To let the model knows the workflow persistently, create a new assistant and app
 >
 >   ![image-20260111182112646](./assets/image-20260111182112646.png)
 >
->   <div id="fig-6">
+>   <p id="fig-6">
 >       <i>Figure 6. Role prompt page</i>
->   </div>
+>   </p>
 
 ### Maintain cookies
 
